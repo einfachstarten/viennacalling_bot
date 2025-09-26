@@ -115,8 +115,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Ungültiger Tokentyp' });
     }
 
-    if (!franzExtensions[type]) {
-      franzExtensions[type] = [];
+    const typeKey = `${type}s`;
+
+    if (!franzExtensions[typeKey]) {
+      franzExtensions[typeKey] = [];
     }
 
     const timestamp = new Date().toISOString();
@@ -135,12 +137,15 @@ export default async function handler(req, res) {
       token
     };
 
-    franzExtensions[type].push(entry);
+    franzExtensions[typeKey].push(entry);
+
+    console.log('Franz Extensions after adding:', franzExtensions);
 
     return res.status(200).json({
       success: true,
       message: `Franz wurde erfolgreich um ${type} erweitert!`,
-      winner: winner_name
+      winner: winner_name,
+      debug: franzExtensions
     });
   }
 

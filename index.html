@@ -2,17 +2,71 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Chat-Bot mit Infos zum Wien Workshop (Zeit, Ort, Essen, Reservierungen).">
-  <title>Wien Workshop Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Kaiser Franz - Ihr persönlicher Workshop-Assistent für Wien. Termine, Orte und alles rund um den Workshop.">
+  <title>Wien Workshop Bot - Kaiser Franz</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FF1493">
+  <meta name="background-color" content="#000000">
+  <meta name="display" content="standalone">
+  <meta name="orientation" content="portrait">
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Franz Bot">
+  <link rel="apple-touch-icon" href="/ios/180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/ios/152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/ios/180.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/ios/32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/ios/16.png">
+  
+  <!-- Microsoft -->
+  <meta name="msapplication-TileColor" content="#FF1493">
+  <meta name="msapplication-TileImage" content="/android/android-launchericon-144-144.png">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="/style.css" as="style">
+  <link rel="preload" href="/script.js" as="script">
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- PWA Install Banner -->
+  <div id="installBanner" class="install-banner" style="display: none;">
+    <div class="install-content">
+      <div class="install-text">
+        <strong>Franz als App installieren</strong>
+        <p>Fügen Sie Franz zu Ihrem Homescreen hinzu für schnellen Zugriff!</p>
+      </div>
+      <div class="install-actions">
+        <button id="installBtn" class="install-btn">Installieren</button>
+        <button id="dismissBtn" class="dismiss-btn">Später</button>
+      </div>
+    </div>
+  </div>
+
   <div class="chat-container" role="main">
-    <header class="chat-header">Kaiser Franz, zu Diensten.</header>
+    <header class="chat-header">
+      <div class="header-content">
+        <span>Kaiser Franz, zu Diensten.</span>
+        <div class="header-actions">
+          <button id="offlineIndicator" class="offline-indicator" style="display: none;">
+            📡 Offline
+          </button>
+        </div>
+      </div>
+    </header>
+    
     <section class="chat-messages" id="messages" aria-live="polite">
       <div class="message bot-message">Gestatten, Franz hier! Fragen Sie mich allergnädigst über den Workshop (Zeit, Ort, Speisen, etc.)</div>
     </section>
+    
     <div class="chat-input">
       <form onsubmit="event.preventDefault(); sendMessage();">
         <label class="visually-hidden" for="userInput">Nachricht eingeben</label>
@@ -21,7 +75,9 @@
       </form>
     </div>
   </div>
+  
   <script src="data.js"></script>
   <script src="script.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

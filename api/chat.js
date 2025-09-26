@@ -762,7 +762,7 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       throw new Error(data.error?.message || `HTTP ${response.status}`);
     }
 
-    const aiMessage = data.choices[0].message.content;
+    let aiMessage = data.choices[0].message.content;
     console.log('✅ AI Response:', aiMessage);
 
     // Unknown Question Detection
@@ -783,6 +783,97 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
     const isUnknownResponse = unknownIndicators.some(indicator =>
       aiMessage.toLowerCase().includes(indicator.toLowerCase())
     );
+
+    // Advanced Uncertainty Detection
+    const uncertaintyPatterns = {
+      // Vage Antworten
+      vague: [
+        'vielleicht',
+        'könnte sein',
+        'vermutlich',
+        'wahrscheinlich',
+        'ich denke',
+        'ich glaube',
+        'möglicherweise',
+        'eventuell',
+        'unter umständen'
+      ],
+
+      // Unsichere Formulierungen
+      uncertain: [
+        'bin mir nicht sicher',
+        'kann nicht genau sagen',
+        'müsste nachschauen',
+        'würde empfehlen',
+        'könnte ihnen nicht',
+        'hab grad keine',
+        'fällt mir nicht ein'
+      ],
+
+      // Ausweichende Antworten
+      evasive: [
+        'das kommt darauf an',
+        'schwer zu sagen',
+        'kann verschiedene',
+        'gibt mehrere',
+        'unterschiedlich',
+        'je nach situation'
+      ],
+
+      // Generische Antworten
+      generic: [
+        'allgemein',
+        'normalerweise',
+        'üblicherweise',
+        'in der regel',
+        'meistens',
+        'oft',
+        'häufig'
+      ]
+    };
+
+    // Check for uncertainty patterns
+    const uncertaintyScore = Object.entries(uncertaintyPatterns).reduce((score, [category, patterns]) => {
+      const matches = patterns.filter(pattern =>
+        aiMessage.toLowerCase().includes(pattern.toLowerCase())
+      ).length;
+
+      if (matches > 0) {
+        score[category] = matches;
+        score.total += matches;
+      }
+      return score;
+    }, { total: 0 });
+
+    // Check response length (very short responses might indicate uncertainty)
+    const isVeryShort = aiMessage.length < 50;
+    const isVeryLong = aiMessage.length > 800; // Might be overcompensating
+
+    // Check for repetitive phrases
+    const words = aiMessage.toLowerCase().split(/\s+/);
+    const wordFreq = words.reduce((freq, word) => {
+      freq[word] = (freq[word] || 0) + 1;
+      return freq;
+    }, {});
+
+    const hasRepetition = Object.values(wordFreq).some(count => count > 3);
+
+    // Check if response doesn't contain any workshop-specific terms
+    const workshopTerms = [
+      'workshop', 'openresearch', 'viva', 'figlmüller', 'meissl', 'topgolf',
+      'insel', 'montag', 'dienstag', 'mittwoch', 'marcus', 'wien', 'biberstraße'
+    ];
+
+    const hasWorkshopContext = workshopTerms.some(term =>
+      aiMessage.toLowerCase().includes(term.toLowerCase())
+    );
+
+    // Overall uncertainty assessment
+    const isUncertainResponse =
+      uncertaintyScore.total > 2 ||
+      (uncertaintyScore.total > 0 && (isVeryShort || !hasWorkshopContext)) ||
+      (isVeryShort && !hasWorkshopContext) ||
+      hasRepetition;
 
     // Keyword Detection für Off-Topic Fragen
     const offTopicKeywords = [
@@ -815,15 +906,22 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       userMessage.includes(keyword)
     );
 
-    // Log Unknown/Off-Topic Questions
-    if (isUnknownResponse || isOffTopic) {
-      console.log('🚨 UNKNOWN QUESTION DETECTED:', {
+    // Log Unknown/Off-Topic/Uncertain Questions
+    if (isUncertainResponse || isUnknownResponse || isOffTopic) {
+      const questionType = isOffTopic ? 'off-topic' :
+                        isUnknownResponse ? 'unknown' : 'uncertain';
+
+      console.log('🚨 PROBLEMATIC RESPONSE DETECTED:', {
+        type: questionType,
         userMessage: conversationMessages[conversationMessages.length - 1].content,
         botResponse: aiMessage,
-        isUnknownResponse,
-        isOffTopic,
-        timestamp: new Date().toISOString(),
-        conversationLength: conversationMessages.length
+        uncertaintyScore,
+        isVeryShort,
+        isVeryLong,
+        hasWorkshopContext,
+        hasRepetition,
+        responseLength: aiMessage.length,
+        timestamp: new Date().toISOString()
       });
 
       // Save to Redis for Admin Dashboard
@@ -835,20 +933,49 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
           id: Date.now().toString(),
           userQuestion: conversationMessages[conversationMessages.length - 1].content,
           botResponse: aiMessage,
-          type: isOffTopic ? 'off-topic' : 'unknown',
+          type: questionType,
+          confidence: questionType === 'uncertain' ? 'low' : 'very-low',
+          analysis: {
+            uncertaintyScore: uncertaintyScore.total,
+            categories: Object.keys(uncertaintyScore).filter(key =>
+              key !== 'total' && uncertaintyScore[key] > 0
+            ),
+            responseLength: aiMessage.length,
+            hasWorkshopContext,
+            hasRepetition
+          },
           timestamp: new Date().toISOString(),
-          resolved: false
+          resolved: false,
+          priority: questionType === 'unknown' ? 'high' : 'medium'
         });
 
-        // Keep only last 50 unknown questions
-        if (unknownQuestions.questions.length > 50) {
-          unknownQuestions.questions = unknownQuestions.questions.slice(-50);
+        if (unknownQuestions.questions.length > 100) {
+          unknownQuestions.questions = unknownQuestions.questions.slice(-100);
         }
 
         await kv.set('unknown-questions', unknownQuestions);
-        console.log('✅ Unknown question saved to Redis');
+        console.log('✅ Enhanced uncertainty data saved to Redis');
       } catch (error) {
-        console.error('❌ Failed to save unknown question:', error);
+        console.error('❌ Failed to save uncertainty analysis:', error);
+      }
+    }
+
+    // Improved response for uncertain situations
+    if (isUncertainResponse && !isUnknownResponse && !isOffTopic) {
+      console.log('🎯 Adding uncertainty fallback to response');
+
+      const fallbackSuggestions = [
+        "\n\nFalls das nicht ganz passt, fragen Sie gern spezifischer nach!",
+        "\n\nSollte ich was übersehen haben, einfach nochmal nachfragen!",
+        "\n\nWenn Sie mehr Details brauchen, bin ich gern da!",
+        "\n\nNicht ganz was Sie gesucht haben? Formulieren Sie gern nochmal anders!"
+      ];
+
+      const fallback = fallbackSuggestions[Math.floor(Math.random() * fallbackSuggestions.length)];
+
+      // Only add fallback if response doesn't already end with a question
+      if (!aiMessage.trim().endsWith('?')) {
+        aiMessage += fallback;
       }
     }
 

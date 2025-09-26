@@ -68,6 +68,14 @@ const workshopData = {
   },
 
   parking: {
+    "openresearch": {
+      name: "Parkgarage Georg-Coch-Platz",
+      address: "Georg-Coch-Platz 2, 1010 Wien",
+      maps: "https://maps.google.com/?q=Georg-Coch-Platz%202,%201010%20Wien",
+      distance: "2 Minuten Fußweg zum OpenResearch Office",
+      note: "Beste Parkoption für Workshop-Teilnehmer",
+      cost: "Kostenpflichtig, Tageskarte empfohlen"
+    },
     "insel": [
       { address: "Ernst-Sadil-Platz 1-2, 1220 Wien", maps: "https://maps.google.com/?q=Ernst-Sadil-Platz%201-2,%201220%20Wien" },
       { address: "Schödlbergergasse 7, 1220 Wien", maps: "https://maps.google.com/?q=Sch%C3%B6dlbergergasse%207,%201220%20Wien" },
@@ -313,8 +321,13 @@ const workshopData = {
     "uhrzeit": "days",
     "essen": ["viva", "figlmueller", "meissl", "pizza"],
     "restaurant": ["viva", "figlmueller", "meissl"],
-    "parken": "parking",
-    "parkplatz": "parking",
+    "parken": ["parking", "openresearch"],
+    "parkplatz": ["parking", "openresearch"],
+    "garage": ["parking", "openresearch"],
+    "georg-coch": "parking",
+    "georg coch": "parking",
+    "workshop parken": ["parking", "openresearch"],
+    "office parken": ["parking", "openresearch"],
     "reservierung": "reservations",
     "code": "reservations",
     "preis": "reservations",

@@ -167,6 +167,14 @@ export default async function handler(req, res) {
       }
     },
     parking: {
+      "openresearch": {
+        name: "Parkgarage Georg-Coch-Platz",
+        address: "Georg-Coch-Platz 2, 1010 Wien",
+        maps: "https://maps.google.com/?q=Georg-Coch-Platz%202,%201010%20Wien",
+        distance: "2 Minuten Fußweg zum OpenResearch Office",
+        note: "Beste Parkoption für Workshop-Teilnehmer",
+        cost: "Kostenpflichtig, Tageskarte empfohlen"
+      },
       "insel": [
         { address: "Ernst-Sadil-Platz 1-2, 1220 Wien", maps: "https://maps.google.com/?q=Ernst-Sadil-Platz%201-2,%201220%20Wien" },
         { address: "Schödlbergergasse 7, 1220 Wien", maps: "https://maps.google.com/?q=Sch%C3%B6dlbergergasse%207,%201220%20Wien" },
@@ -429,6 +437,69 @@ export default async function handler(req, res) {
         fire: "122",
         tourist_help: "+43 1 24 555 (Wien Tourismus)"
       }
+    },
+    keywords: {
+      "adresse": "locations",
+      "ort": "locations",
+      "wo": "locations",
+      "wann": "days",
+      "zeit": "days",
+      "uhrzeit": "days",
+      "essen": ["viva", "figlmueller", "meissl", "pizza"],
+      "restaurant": ["viva", "figlmueller", "meissl"],
+      "parken": ["parking", "openresearch"],
+      "parkplatz": ["parking", "openresearch"],
+      "garage": ["parking", "openresearch"],
+      "georg-coch": "parking",
+      "georg coch": "parking",
+      "workshop parken": ["parking", "openresearch"],
+      "office parken": ["parking", "openresearch"],
+      "reservierung": "reservations",
+      "code": "reservations",
+      "preis": "reservations",
+      "topgolf": "topgolf_info",
+      "golf": "topgolf_info",
+      "transport": "transport",
+      "auto": "transport",
+      "workshop": "openresearch",
+      "marcus": "contact",
+      "ansprechpartner": "contact",
+      "kontakt": "contact",
+      "telefon": "contact",
+      "handy": "contact",
+      "notfall": "emergency",
+      "hilfe": "emergency",
+      "flughafen": "travel",
+      "anreise": "travel",
+      "s7": "travel",
+      "cat": "travel",
+      "öffis": "wien_tips",
+      "u-bahn": "wien_tips",
+      "ticket": "wien_tips",
+      "wienmobil": "wien_tips",
+      "einkaufen": "wien_tips",
+      "supermarkt": "wien_tips",
+      "spar": "wien_tips",
+      "billa": "wien_tips",
+      "apotheke": "wien_tips",
+      "kaffee": "wien_tips",
+      "café": "wien_tips",
+      "checkin": "workshop_details",
+      "anmeldung": "workshop_details",
+      "wlan": "workshop_details",
+      "wifi": "workshop_details",
+      "passwort": "workshop_details",
+      "technik": "workshop_details",
+      "wetter": "weather_backup",
+      "regen": "weather_backup",
+      "kleidung": "weather_backup",
+      "anziehen": "weather_backup",
+      "kosten": ["reservations", "costs_and_payments"],
+      "bezahlen": "costs_and_payments",
+      "trinkgeld": "costs_and_payments",
+      "sightseeing": "wien_tips",
+      "sehenswürdigkeiten": "wien_tips",
+      "stephansdom": "wien_tips"
     }
   };
 
@@ -577,6 +648,7 @@ LINK-HANDLING:
 
 VERFÜGBARE MAPS-URLS (verwende diese direkt):
 - OpenResearch Office: https://maps.google.com/?q=Biberstraße%209,%201010%20Wien
+- Parkgarage Georg-Coch-Platz: https://maps.google.com/?q=Georg-Coch-Platz%202,%201010%20Wien
 - Viva la Mamma: https://maps.google.com/?q=Dr.-Karl-Lueger-Platz%205,%201010%20Wien
 - Figlmüller: https://maps.google.com/?q=Bäckerstraße%206,%201010%20Wien
 - Topgolf: https://maps.google.com/?q=Wiener%20Straße%20196,%202345%20Brunn%20am%20Gebirge
@@ -595,6 +667,12 @@ Antwort: "Des OpenResearch Office ist in der Biberstraße 9! Hier geht's hin: ht
 
 Frage: "wo parken für insel?"
 Antwort: "Für die Insel empfehl ich Ernst-Sadil-Platz: https://maps.google.com/?q=Ernst-Sadil-Platz%201-2,%201220%20Wien oder Schödlbergergasse: https://maps.google.com/?q=Schödlbergergasse%207,%201220%20Wien 🚗"
+
+Frage: "wo kann ich beim workshop parken?"
+Antwort: "Für's OpenResearch Office empfehl ich die Parkgarage am Georg-Coch-Platz! Nur 2 Minuten zu Fuß. Hier der Weg: https://maps.google.com/?q=Georg-Coch-Platz%202,%201010%20Wien 🚗"
+
+Frage: "parkgarage workshop"
+Antwort: "Na perfekt! Die Parkgarage Georg-Coch-Platz ist ideal - gleich ums Eck vom OpenResearch Office: https://maps.google.com/?q=Georg-Coch-Platz%202,%201010%20Wien 👑"
 
 CONVERSATIONAL RULES:
 - Reagiere auf den Kontext (erste Nachricht vs. Folgenachricht)

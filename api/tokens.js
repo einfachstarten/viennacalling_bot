@@ -1,3 +1,38 @@
+import fs from 'fs';
+
+const STORAGE_FILE = '/tmp/franz-extensions.json';
+
+function loadExtensions() {
+  try {
+    if (fs.existsSync(STORAGE_FILE)) {
+      const data = fs.readFileSync(STORAGE_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      return {
+        facts: Array.isArray(parsed.facts) ? parsed.facts : [],
+        phrases: Array.isArray(parsed.phrases) ? parsed.phrases : [],
+        behaviors: Array.isArray(parsed.behaviors) ? parsed.behaviors : []
+      };
+    }
+  } catch (error) {
+    console.error('Error loading extensions:', error);
+  }
+
+  return {
+    facts: [],
+    phrases: [],
+    behaviors: []
+  };
+}
+
+function saveExtensions(extensions) {
+  try {
+    fs.writeFileSync(STORAGE_FILE, JSON.stringify(extensions, null, 2));
+    console.log('Extensions saved:', extensions);
+  } catch (error) {
+    console.error('Error saving extensions:', error);
+  }
+}
+
 // In-Memory Token Store (reset bei Deployment)
 let tokenStore = {
   "win1-bjrqke": {
@@ -52,11 +87,7 @@ let tokenStore = {
   }
 };
 
-let franzExtensions = {
-  facts: [],
-  phrases: [],
-  behaviors: []
-};
+let franzExtensions = loadExtensions();
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -139,6 +170,8 @@ export default async function handler(req, res) {
 
     franzExtensions[typeKey].push(entry);
 
+    saveExtensions(franzExtensions);
+
     console.log('Franz Extensions after adding:', franzExtensions);
 
     return res.status(200).json({
@@ -160,7 +193,10 @@ export default async function handler(req, res) {
         winner: data.winner,
         type: data.type
       }));
-      return res.status(200).json({ tokens: status });
+      return res.status(200).json({
+        tokens: status,
+        extensions: franzExtensions
+      });
     }
 
     return res.status(403).json({ error: 'Admin Key ungültig' });

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Admin - Workshop</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .admin-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1, h2 {
+            color: #000;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background: #FF1493;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background: #e1127f;
+        }
+        .btn-secondary {
+            background: #666;
+        }
+        .btn-secondary:hover {
+            background: #555;
+        }
+        .token-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .token-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #FF1493;
+        }
+        .used {
+            border-left-color: #666;
+            opacity: 0.6;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .generator-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>🎫 Token Generator</h1>
+        
+        <div class="form-group">
+            <label for="adminPassword">Admin Passwort:</label>
+            <input type="password" id="adminPassword" placeholder="workshop2025admin">
+        </div>
+        
+        <div class="form-group">
+            <label for="tokenCount">Anzahl Tokens:</label>
+            <input type="number" id="tokenCount" value="10" min="1" max="50">
+        </div>
+        
+        <button class="btn" onclick="generateTokens()">Tokens Generieren</button>
+        <button class="btn btn-secondary" onclick="loadTokenStatus()">Token Status Laden</button>
+        
+        <div id="generatorOutput" class="generator-output" style="display: none;"></div>
+        <div id="status" class="status"></div>
+    </div>
+    
+    <div class="admin-container">
+        <h2>📊 Token Status</h2>
+        <div id="tokenList" class="token-list">
+            Lade Token-Status um aktuelle Tokens zu sehen...
+        </div>
+    </div>
+    
+    <script>
+        async function generateTokens() {
+            const count = document.getElementById('tokenCount').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/generate-tokens', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_password: password,
+                        count: parseInt(count)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(`${count} Tokens generiert!`);
+                    document.getElementById('generatorOutput').textContent = result.tokens_code;
+                    document.getElementById('generatorOutput').style.display = 'block';
+                    loadTokenStatus();
+                } else {
+                    showError(result.error);
+                }
+                
+            } catch (error) {
+                showError('Fehler beim Generieren');
+            }
+        }
+        
+        async function loadTokenStatus() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/tokens', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_key: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayTokens(result.tokens);
+                } else {
+                    showError(result.error || 'Fehler beim Laden');
+                }
+                
+            } catch (error) {
+                showError('Fehler beim Laden der Tokens');
+            }
+        }
+        
+        function displayTokens(tokens) {
+            const tokenList = document.getElementById('tokenList');
+            
+            if (tokens.length === 0) {
+                tokenList.innerHTML = 'Keine Tokens vorhanden.';
+                return;
+            }
+            
+            tokenList.innerHTML = tokens.map(token => `
+                <div class="token-item ${token.used ? 'used' : ''}">
+                    <strong>${token.token}</strong> 
+                    [${token.type}] 
+                    ${token.used ? `✅ Verwendet von: ${token.winner}` : '⏳ Verfügbar'}
+                </div>
+            `).join('');
+        }
+        
+        function showError(message) {
+            const status = document.getElementById('status');
+            status.className = 'status error';
+            status.textContent = '❌ ' + message;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 5000);
+        }
+        
+        function showSuccess(message) {
+            const status = document.getElementById('status');
+            status.className = 'status success';
+            status.textContent = '✅ ' + message;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 5000);
+        }
+        
+        // Auto-load on page load
+        setTimeout(() => {
+            document.getElementById('adminPassword').value = 'workshop2025admin';
+            loadTokenStatus();
+        }, 500);
+    </script>
+</body>
+</html>

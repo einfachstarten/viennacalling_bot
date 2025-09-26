@@ -184,20 +184,7 @@
         <button class="btn btn-secondary" onclick="loadFranzExtensions()">Franz-Wissen laden</button>
         
         <div id="franzKnowledge" class="franz-knowledge" style="display: none;">
-            <div class="knowledge-section">
-                <h3>📝 Facts</h3>
-                <div id="factsList" class="extension-list">Keine Facts</div>
-            </div>
-            
-            <div class="knowledge-section">
-                <h3>💬 Phrases</h3>
-                <div id="phrasesList" class="extension-list">Keine Phrases</div>
-            </div>
-            
-            <div class="knowledge-section">
-                <h3>🎭 Behaviors</h3>
-                <div id="behaviorsList" class="extension-list">Keine Behaviors</div>
-            </div>
+            <div class="empty-state">Noch keine Daten geladen</div>
         </div>
     </div>
 
@@ -281,8 +268,7 @@
             
             tokenList.innerHTML = tokens.map(token => `
                 <div class="token-item ${token.used ? 'used' : ''}">
-                    <strong>${token.token}</strong> 
-                    [${token.type}] 
+                    <strong>${token.token}</strong>
                     ${token.used ? `✅ Verwendet von: ${token.winner}` : '⏳ Verfügbar'}
                 </div>
             `).join('');
@@ -304,47 +290,48 @@
             setTimeout(() => status.style.display = 'none', 5000);
         }
 
+        function displayFranzKnowledge(extensions) {
+            const container = document.getElementById('franzKnowledge');
+            
+            if (!extensions || extensions.length === 0) {
+                container.innerHTML = '<div class="empty-state">Franz weiß noch nichts Neues</div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="knowledge-section">
+                  <h3>🧠 Franz Wissen (${extensions.length} Einträge)</h3>
+                  <div class="extension-list">
+                    ${extensions.map(ext => `
+                      <div class="extension-item">
+                        <div><strong>${ext.content}</strong></div>
+                        <div class="extension-meta">
+                          Von: ${ext.winner} | 
+                          Token: ${ext.token} | 
+                          ${new Date(ext.timestamp).toLocaleString('de-DE')}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+            `;
+        }
+
         async function loadFranzExtensions() {
             try {
                 const response = await fetch('/api/debug-extensions');
                 const result = await response.json();
-
+                
                 if (response.ok) {
                     displayFranzKnowledge(result.extensions);
                     document.getElementById('franzKnowledge').style.display = 'block';
-                    showSuccess(`Franz kennt ${result.totalExtensions} Extensions`);
+                    showSuccess(`Franz kennt ${result.totalExtensions} neue Dinge`);
                 } else {
                     showError('Fehler beim Laden von Franz-Wissen');
                 }
             } catch (error) {
                 showError('Fehler beim Laden');
             }
-        }
-
-        function displayFranzKnowledge(extensions) {
-            displayExtensionType('factsList', extensions.facts || []);
-            displayExtensionType('phrasesList', extensions.phrases || []);
-            displayExtensionType('behaviorsList', extensions.behaviors || []);
-        }
-
-        function displayExtensionType(elementId, items) {
-            const container = document.getElementById(elementId);
-
-            if (items.length === 0) {
-                container.innerHTML = '<div class="empty-state">Keine Einträge</div>';
-                return;
-            }
-
-            container.innerHTML = items.map(item => `
-                <div class="extension-item">
-                    <div><strong>${item.content}</strong></div>
-                    <div class="extension-meta">
-                        Von: ${item.winner} |
-                        Token: ${item.token} |
-                        ${new Date(item.timestamp).toLocaleString('de-DE')}
-                    </div>
-                </div>
-            `).join('');
         }
 
         function refreshAll() {

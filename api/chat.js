@@ -7,33 +7,26 @@ function loadExtensions() {
     if (fs.existsSync(STORAGE_FILE)) {
       const data = fs.readFileSync(STORAGE_FILE, 'utf8');
       const parsed = JSON.parse(data);
-      return {
-        facts: Array.isArray(parsed.facts) ? parsed.facts : [],
-        phrases: Array.isArray(parsed.phrases) ? parsed.phrases : [],
-        behaviors: Array.isArray(parsed.behaviors) ? parsed.behaviors : []
-      };
+      if (Array.isArray(parsed.extensions)) {
+        return { extensions: parsed.extensions };
+      }
+      if (Array.isArray(parsed)) {
+        return { extensions: parsed };
+      }
+      return { extensions: [] };
     }
   } catch (error) {
     console.error('Error loading extensions:', error);
   }
 
   console.log('No extensions found, using empty state');
-  return {
-    facts: [],
-    phrases: [],
-    behaviors: []
-  };
+  return { extensions: [] };
 }
 
 export default async function handler(req, res) {
   console.log('=== CHAT API START ===');
   console.log('Method:', req.method);
 
-  const franzExtensions = loadExtensions();
-  console.log('🔍 RAW Extensions loaded:', JSON.stringify(franzExtensions, null, 2));
-  console.log('🔍 Facts count:', franzExtensions.facts?.length || 0);
-  console.log('🔍 Phrases count:', franzExtensions.phrases?.length || 0);
-  console.log('🔍 Behaviors count:', franzExtensions.behaviors?.length || 0);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -615,36 +608,20 @@ Frage: "was machen wir heute?"
 Frage: "welcher tag ist heute?"
 Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshopDay}!` : 'Kein Workshop heute.'}"`;
 
-  console.log('🔍 Building systemPrompt with extensions...');
+  const franzExtensions = loadExtensions();
+  console.log('🔍 Extensions loaded:', JSON.stringify(franzExtensions, null, 2));
+  console.log('🔍 Total extensions:', (franzExtensions.extensions || []).length);
 
-  if (franzExtensions.facts.length > 0) {
-    console.log('✅ Adding facts to systemPrompt:', franzExtensions.facts);
-    systemPrompt += `\nVON WORKSHOP-GEWINNERN HINZUGEFÜGTE FAKTEN:\n`;
-    franzExtensions.facts.forEach(fact => {
-      systemPrompt += `- ${fact.content} (von ${fact.winner})\n`;
+  console.log('🔍 Adding extensions to systemPrompt...');
+
+  if (franzExtensions.extensions && franzExtensions.extensions.length > 0) {
+    console.log('✅ Adding extensions to systemPrompt:', franzExtensions.extensions);
+    systemPrompt += `\n\nVON WORKSHOP-GEWINNERN BEIGEBRACHTES WISSEN:\n`;
+    franzExtensions.extensions.forEach(ext => {
+      systemPrompt += `- ${ext.content} (von ${ext.winner})\n`;
     });
   } else {
-    console.log('❌ No facts found');
-  }
-
-  if (franzExtensions.phrases.length > 0) {
-    console.log('✅ Adding phrases to systemPrompt:', franzExtensions.phrases);
-    systemPrompt += `\nNEUE WIENER PHRASEN VON GEWINNERN:\n`;
-    franzExtensions.phrases.forEach(phrase => {
-      systemPrompt += `- ${phrase.content} (von ${phrase.winner})\n`;
-    });
-  } else {
-    console.log('❌ No phrases found');
-  }
-
-  if (franzExtensions.behaviors.length > 0) {
-    console.log('✅ Adding behaviors to systemPrompt:', franzExtensions.behaviors);
-    systemPrompt += `\nNEUE VERHALTENSWEISEN VON GEWINNERN:\n`;
-    franzExtensions.behaviors.forEach(behavior => {
-      systemPrompt += `- ${behavior.content} (von ${behavior.winner})\n`;
-    });
-  } else {
-    console.log('❌ No behaviors found');
+    console.log('❌ No extensions found');
   }
 
   console.log('🔍 FINAL SYSTEM PROMPT PREVIEW (last 800 chars):');

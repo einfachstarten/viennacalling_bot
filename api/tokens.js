@@ -6,22 +6,12 @@ function loadExtensions() {
   try {
     if (fs.existsSync(STORAGE_FILE)) {
       const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-      return {
-        facts: Array.isArray(parsed.facts) ? parsed.facts : [],
-        phrases: Array.isArray(parsed.phrases) ? parsed.phrases : [],
-        behaviors: Array.isArray(parsed.behaviors) ? parsed.behaviors : []
-      };
+      return JSON.parse(data);
     }
   } catch (error) {
     console.error('Error loading extensions:', error);
   }
-
-  return {
-    facts: [],
-    phrases: [],
-    behaviors: []
-  };
+  return { extensions: [] };
 }
 
 function saveExtensions(extensions) {
@@ -33,65 +23,22 @@ function saveExtensions(extensions) {
   }
 }
 
-// In-Memory Token Store (reset bei Deployment)
+// Token Store ohne Types
 let tokenStore = {
-  "win1-bjrqke": {
-    "used": false,
-    "winner": null,
-    "type": "phrase"
-  },
-  "win2-a2wyl9": {
-    "used": false,
-    "winner": null,
-    "type": "behavior"
-  },
-  "win3-56f4fy": {
-    "used": false,
-    "winner": null,
-    "type": "phrase"
-  },
-  "win4-cw966v": {
-    "used": false,
-    "winner": null,
-    "type": "behavior"
-  },
-  "win5-4ehpm5": {
-    "used": false,
-    "winner": null,
-    "type": "behavior"
-  },
-  "win6-a4hepf": {
-    "used": false,
-    "winner": null,
-    "type": "behavior"
-  },
-  "win7-3pm5fy": {
-    "used": false,
-    "winner": null,
-    "type": "phrase"
-  },
-  "win8-y8cqag": {
-    "used": false,
-    "winner": null,
-    "type": "fact"
-  },
-  "win9-jxohj8": {
-    "used": false,
-    "winner": null,
-    "type": "behavior"
-  },
-  "win10-uynio4": {
-    "used": false,
-    "winner": null,
-    "type": "phrase"
-  }
+  "win1-bjrqke": { used: true, winner: "Mustermann" },
+  "win2-a2wyl9": { used: false, winner: null },
+  "win3-56f4fy": { used: false, winner: null },
+  "win4-cw966v": { used: false, winner: null },
+  "win5-4ehpm5": { used: false, winner: null },
+  "win6-a4hepf": { used: false, winner: null },
+  "win7-3pm5fy": { used: false, winner: null },
+  "win8-y8cqag": { used: false, winner: null },
+  "win9-jxohj8": { used: false, winner: null },
+  "win10-uynio4": { used: false, winner: null }
 };
-
-let franzExtensions = loadExtensions();
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    // Token-Status prüfen
     const { token } = req.query;
 
     if (!token || !tokenStore[token]) {
@@ -104,13 +51,14 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       valid: true,
-      type: tokenStore[token].type,
       message: 'Token ist gültig!'
     });
   }
 
   if (req.method === 'POST') {
-    // Token einlösen
+    console.log('=== TOKEN SUBMISSION START ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const { token, content, winner_name } = req.body;
 
     if (!token || !content || !winner_name) {
@@ -125,7 +73,6 @@ export default async function handler(req, res) {
       return res.status(410).json({ error: 'Token bereits verwendet' });
     }
 
-    // Content validieren
     if (content.length > 150) {
       return res.status(400).json({ error: 'Text zu lang (max 150 Zeichen)' });
     }
@@ -134,75 +81,79 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name zu lang (max 30 Zeichen)' });
     }
 
-    // Verbotene Wörter (optional)
-    const badWords = ['hack', 'delete', 'admin', 'password'];
-    if (badWords.some(word => content.toLowerCase().includes(word))) {
-      return res.status(400).json({ error: 'Unerlaubter Inhalt' });
+    console.log('✅ Validation passed');
+
+    // Extensions laden
+    let allExtensions = loadExtensions();
+    if (!Array.isArray(allExtensions.extensions)) {
+      allExtensions.extensions = [];
     }
-
-    const type = tokenStore[token].type;
-
-    if (!['fact', 'phrase', 'behavior'].includes(type)) {
-      return res.status(400).json({ error: 'Ungültiger Tokentyp' });
-    }
-
-    const typeKey = `${type}s`;
-
-    if (!franzExtensions[typeKey]) {
-      franzExtensions[typeKey] = [];
-    }
-
-    const timestamp = new Date().toISOString();
-
-    // Token als verwendet markieren
-    tokenStore[token].used = true;
-    tokenStore[token].winner = winner_name;
-    tokenStore[token].content = content;
-    tokenStore[token].timestamp = timestamp;
-
-    // Zu Franz hinzufügen
+    console.log('🔍 Current extensions:', JSON.stringify(allExtensions, null, 2));
+    
     const entry = {
       content,
       winner: winner_name,
-      timestamp,
+      timestamp: new Date().toISOString(),
       token
     };
 
-    franzExtensions[typeKey].push(entry);
+    // Token markieren
+    tokenStore[token].used = true;
+    tokenStore[token].winner = winner_name;
+    console.log('✅ Token marked as used');
 
-    saveExtensions(franzExtensions);
+    // Extension hinzufügen
+    allExtensions.extensions.push(entry);
+    console.log('✅ Extension added:', entry);
+    console.log('🔍 All extensions after adding:', JSON.stringify(allExtensions, null, 2));
+    
+    // Speichern mit Debug
+    console.log('💾 Saving to:', STORAGE_FILE);
+    try {
+      const dataToSave = JSON.stringify(allExtensions, null, 2);
+      console.log('💾 Data to save:', dataToSave);
+      
+      fs.writeFileSync(STORAGE_FILE, dataToSave);
+      console.log('✅ Save completed');
+      
+      // Verification
+      if (fs.existsSync(STORAGE_FILE)) {
+        const verification = fs.readFileSync(STORAGE_FILE, 'utf8');
+        console.log('🔍 File content after save:', verification);
+      } else {
+        console.log('❌ File does not exist after save!');
+      }
+      
+    } catch (error) {
+      console.error('❌ Save error:', error);
+    }
 
-    console.log('Franz Extensions after adding:', franzExtensions);
+    console.log('=== TOKEN SUBMISSION END ===');
 
     return res.status(200).json({
       success: true,
-      message: `Franz wurde erfolgreich um ${type} erweitert!`,
+      message: 'Franz hat neues Wissen gelernt!',
       winner: winner_name,
-      debug: franzExtensions
+      debug: allExtensions
     });
   }
 
-  // Admin endpoint für Token-Status
+  // Admin endpoint
   if (req.method === 'DELETE') {
     const { admin_key } = req.body || {};
     if (admin_key === 'workshop2025admin') {
-      // Token-Status für Admin
       const status = Object.entries(tokenStore).map(([token, data]) => ({
         token: `${token.substring(0, 8)}...`,
         used: data.used,
-        winner: data.winner,
-        type: data.type
+        winner: data.winner
       }));
       return res.status(200).json({
         tokens: status,
-        extensions: franzExtensions
+        extensions: loadExtensions()
       });
     }
-
     return res.status(403).json({ error: 'Admin Key ungültig' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
-
-export { franzExtensions, tokenStore };

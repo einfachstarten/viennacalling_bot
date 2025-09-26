@@ -8,11 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    let extensions = {
-      facts: [],
-      phrases: [],
-      behaviors: []
-    };
+    let extensions = { extensions: [] };
 
     if (fs.existsSync(STORAGE_FILE)) {
       const data = fs.readFileSync(STORAGE_FILE, 'utf8');
@@ -21,8 +17,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       fileExists: fs.existsSync(STORAGE_FILE),
-      extensions: extensions,
-      totalExtensions: (extensions.facts?.length || 0) + (extensions.phrases?.length || 0) + (extensions.behaviors?.length || 0),
+      extensions: extensions.extensions || [],
+      totalExtensions: (extensions.extensions || []).length,
       debug: {
         storageFile: STORAGE_FILE,
         timestamp: new Date().toISOString()

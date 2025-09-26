@@ -1,17 +1,23 @@
-import { kv } from '@vercel/kv';
-
-async function loadExtensions() {
-  try {
-    const extensions = await kv.get('franz-extensions');
-    if (extensions && Array.isArray(extensions.extensions)) {
-      return { extensions: extensions.extensions };
-    }
-    return { extensions: [] };
-  } catch (error) {
-    console.error('Error loading extensions from KV:', error);
+// Extension Loading Function
+const loadExtensions = async () => {
+  const hasUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
+  const hasToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
+  
+  if (!hasUrl || !hasToken) {
+    console.log('📦 Redis not available for chat, using empty extensions');
     return { extensions: [] };
   }
-}
+  
+  try {
+    const { kv } = await import('@vercel/kv');
+    const extensions = await kv.get('franz-extensions');
+    console.log('📦 Chat loaded extensions from Redis:', extensions);
+    return extensions || { extensions: [] };
+  } catch (error) {
+    console.error('❌ Chat Redis error:', error);
+    return { extensions: [] };
+  }
+};
 
 export default async function handler(req, res) {
   console.log('=== CHAT API START ===');
@@ -599,9 +605,10 @@ Frage: "welcher tag ist heute?"
 Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshopDay}!` : 'Kein Workshop heute.'}"`;
 
   const franzExtensions = await loadExtensions();
-  console.log('🔍 Extensions loaded:', JSON.stringify(franzExtensions, null, 2));
+  console.log('🔍 Extensions loaded for chat:', JSON.stringify(franzExtensions, null, 2));
   console.log('🔍 Total extensions:', (franzExtensions.extensions || []).length);
 
+  // Extensions hinzufügen - EINFACH
   console.log('🔍 Adding extensions to systemPrompt...');
 
   if (franzExtensions.extensions && franzExtensions.extensions.length > 0) {
@@ -611,7 +618,7 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       systemPrompt += `- ${ext.content} (von ${ext.winner})\n`;
     });
   } else {
-    console.log('❌ No extensions found');
+    console.log('❌ No extensions found for chat');
   }
 
   console.log('🔍 FINAL SYSTEM PROMPT PREVIEW (last 800 chars):');

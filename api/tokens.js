@@ -1,11 +1,8 @@
 import { kv } from '@vercel/kv';
 
-// KV Storage Keys
-const EXTENSIONS_KEY = 'franz-extensions';
-const TOKEN_STORE_KEY = 'token-store';
-
-// Initial Token Store (wird in KV gespeichert)
-const defaultTokenStore = {
+// Fallback In-Memory Storage für Development
+let memoryExtensions = { extensions: [] };
+let memoryTokenStore = {
   "win1-bjrqke": { used: true, winner: "Mustermann" },
   "win2-a2wyl9": { used: true, winner: "Musterfrau" },
   "win3-56f4fy": { used: false, winner: null },
@@ -18,48 +15,89 @@ const defaultTokenStore = {
   "win10-uynio4": { used: false, winner: null }
 };
 
+// Check if Redis is available
+const isRedisAvailable = () => {
+  const hasUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
+  const hasToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
+  return hasUrl && hasToken;
+};
+
 async function loadExtensions() {
+  if (!isRedisAvailable()) {
+    console.log('📦 Redis not available, using memory storage for extensions');
+    return memoryExtensions;
+  }
+  
   try {
-    const extensions = await kv.get(EXTENSIONS_KEY);
+    const extensions = await kv.get('franz-extensions');
+    console.log('📦 Loaded from Redis:', extensions);
     return extensions || { extensions: [] };
   } catch (error) {
-    console.error('Error loading extensions from KV:', error);
-    return { extensions: [] };
+    console.error('❌ Redis failed, fallback to memory:', error.message);
+    return memoryExtensions;
   }
 }
 
 async function saveExtensions(extensions) {
+  if (!isRedisAvailable()) {
+    console.log('📦 Saving to memory storage');
+    memoryExtensions = extensions;
+    return;
+  }
+  
   try {
-    await kv.set(EXTENSIONS_KEY, extensions);
-    console.log('Extensions saved to KV:', extensions);
+    await kv.set('franz-extensions', extensions);
+    console.log('📦 Saved to Redis:', extensions);
   } catch (error) {
-    console.error('Error saving extensions to KV:', error);
+    console.error('❌ Redis save failed, saving to memory:', error.message);
+    memoryExtensions = extensions;
   }
 }
 
 async function loadTokenStore() {
+  if (!isRedisAvailable()) {
+    console.log('📦 Using memory storage for tokens');
+    return memoryTokenStore;
+  }
+  
   try {
-    const tokenStore = await kv.get(TOKEN_STORE_KEY);
-    return tokenStore || defaultTokenStore;
+    const tokenStore = await kv.get('token-store');
+    const result = tokenStore || memoryTokenStore;
+    console.log('📦 Loaded token store from Redis');
+    return result;
   } catch (error) {
-    console.error('Error loading token store from KV:', error);
-    return defaultTokenStore;
+    console.error('❌ Redis failed for token store, fallback to memory:', error.message);
+    return memoryTokenStore;
   }
 }
 
 async function saveTokenStore(tokenStore) {
+  if (!isRedisAvailable()) {
+    console.log('📦 Saving tokens to memory storage');
+    memoryTokenStore = tokenStore;
+    return;
+  }
+  
   try {
-    await kv.set(TOKEN_STORE_KEY, tokenStore);
-    console.log('Token store saved to KV');
+    await kv.set('token-store', tokenStore);
+    console.log('📦 Token store saved to Redis');
   } catch (error) {
-    console.error('Error saving token store to KV:', error);
+    console.error('❌ Redis save failed for tokens, saving to memory:', error.message);
+    memoryTokenStore = tokenStore;
   }
 }
 
 export default async function handler(req, res) {
+  // Environment Debug Info
+  console.log('🔍 Environment Check:', {
+    hasKV: !!process.env.KV_REST_API_URL,
+    hasStorage: !!process.env.STORAGE_REST_API_URL,
+    redisAvailable: isRedisAvailable()
+  });
+
   if (req.method === 'GET') {
     const { token } = req.query;
-
+    
     const tokenStore = await loadTokenStore();
 
     if (!token || !tokenStore[token]) {
@@ -77,9 +115,10 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    console.log('=== TOKEN SUBMISSION START (KV) ===');
+    console.log('=== TOKEN SUBMISSION START (Redis) ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
-
+    console.log('🔍 Redis available:', isRedisAvailable());
+    
     const { token, content, winner_name } = req.body;
 
     if (!token || !content || !winner_name) {
@@ -109,11 +148,8 @@ export default async function handler(req, res) {
 
     // Extensions laden
     const allExtensions = await loadExtensions();
-    if (!Array.isArray(allExtensions.extensions)) {
-      allExtensions.extensions = [];
-    }
-    console.log('🔍 Current extensions from KV:', JSON.stringify(allExtensions, null, 2));
-
+    console.log('🔍 Current extensions:', JSON.stringify(allExtensions, null, 2));
+    
     const entry = {
       content,
       winner: winner_name,
@@ -125,29 +161,33 @@ export default async function handler(req, res) {
     tokenStore[token].used = true;
     tokenStore[token].winner = winner_name;
     await saveTokenStore(tokenStore);
-    console.log('✅ Token marked as used in KV');
+    console.log('✅ Token marked as used');
 
     // Extension hinzufügen
     allExtensions.extensions.push(entry);
     console.log('✅ Extension added:', entry);
     console.log('🔍 All extensions after adding:', JSON.stringify(allExtensions, null, 2));
-
-    // In KV speichern
-    console.log('💾 Saving to KV...');
+    
+    // Speichern
+    console.log('💾 Saving extensions...');
     await saveExtensions(allExtensions);
-    console.log('✅ Save to KV completed');
-
+    console.log('✅ Save completed');
+    
     // Verification
     const verification = await loadExtensions();
-    console.log('🔍 KV content after save:', JSON.stringify(verification, null, 2));
+    console.log('🔍 Verification load:', JSON.stringify(verification, null, 2));
 
-    console.log('=== TOKEN SUBMISSION END (KV) ===');
+    console.log('=== TOKEN SUBMISSION END (Redis) ===');
 
     return res.status(200).json({
       success: true,
       message: 'Franz hat neues Wissen gelernt!',
       winner: winner_name,
-      debug: allExtensions
+      debug: {
+        extensions: allExtensions,
+        redisAvailable: isRedisAvailable(),
+        storageType: isRedisAvailable() ? 'Redis' : 'Memory'
+      }
     });
   }
 
@@ -157,16 +197,20 @@ export default async function handler(req, res) {
     if (admin_key === 'workshop2025admin') {
       const tokenStore = await loadTokenStore();
       const extensions = await loadExtensions();
-
+      
       const status = Object.entries(tokenStore).map(([token, data]) => ({
         token: `${token.substring(0, 8)}...`,
         used: data.used,
         winner: data.winner
       }));
-
+      
       return res.status(200).json({
         tokens: status,
-        extensions: extensions
+        extensions: extensions,
+        debug: {
+          redisAvailable: isRedisAvailable(),
+          storageType: isRedisAvailable() ? 'Redis' : 'Memory'
+        }
       });
     }
     return res.status(403).json({ error: 'Admin Key ungültig' });

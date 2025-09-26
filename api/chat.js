@@ -1,15 +1,25 @@
 export default async function handler(req, res) {
+  console.log('API Key verfügbar:', !!process.env.OPENAI_API_KEY);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body;
+  const { message } = req.body || {};
+  console.log('Nachricht erhalten:', message);
 
   if (!message || message.length > 500) {
     return res.status(400).json({ error: 'Invalid message' });
   }
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+  if (!OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY not found in environment variables');
+    return res.status(500).json({
+      error: 'Na servas, da fehlt was in der Konfiguration! 🤖'
+    });
+  }
 
   const workshopData = {
     days: {

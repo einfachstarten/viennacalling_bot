@@ -168,6 +168,21 @@
         <button class="btn btn-secondary" onclick="loadTokenStatus()">Token Status Laden</button>
         <button class="btn btn-secondary" onclick="refreshAll()">🔄 Alles Aktualisieren</button>
 
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #FF1493;">
+            <h3 style="color: #FF1493;">⚠️ Reset Funktionen</h3>
+            <p style="color: #666; font-size: 14px;">ACHTUNG: Diese Aktionen können nicht rückgängig gemacht werden!</p>
+            
+            <button class="btn" style="background: #ffc107; color: #000;" onclick="resetTokens()">
+                🔄 Tokens zurücksetzen
+            </button>
+            <button class="btn" style="background: #dc3545;" onclick="resetExtensions()">
+                🧠 Franz-Wissen löschen
+            </button>
+            <button class="btn" style="background: #6c757d;" onclick="fullReset()">
+                💥 Komplett Reset
+            </button>
+        </div>
+
         <div id="generatorOutput" class="generator-output" style="display: none;"></div>
         <div id="status" class="status"></div>
     </div>
@@ -226,9 +241,123 @@
             }
         }
         
+        async function resetTokens() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+
+            if (!confirm('Alle Tokens auf "unbenutzt" zurücksetzen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tokens', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_key: password,
+                        action: 'reset_tokens'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess(result.message);
+                    refreshAll();
+                } else {
+                    showError(result.error);
+                }
+
+            } catch (error) {
+                showError('Fehler beim Token-Reset');
+            }
+        }
+
+        async function resetExtensions() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+
+            if (!confirm('Franz-Wissen komplett löschen? Das kann nicht rückgängig gemacht werden!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tokens', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_key: password,
+                        action: 'reset_extensions'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess(result.message);
+                    refreshAll();
+                } else {
+                    showError(result.error);
+                }
+
+            } catch (error) {
+                showError('Fehler beim Extensions-Reset');
+            }
+        }
+
+        async function fullReset() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+
+            if (!confirm('KOMPLETTER RESET: Alle Tokens UND Franz-Wissen löschen?\n\nDas ist NICHT rückgängig zu machen!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tokens', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_key: password,
+                        action: 'full_reset'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess(result.message);
+                    refreshAll();
+                } else {
+                    showError(result.error);
+                }
+
+            } catch (error) {
+                showError('Fehler beim Full-Reset');
+            }
+        }
+
         async function loadTokenStatus() {
             const password = document.getElementById('adminPassword').value;
-            
+
             if (!password) {
                 showError('Passwort erforderlich');
                 return;

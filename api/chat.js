@@ -1,3 +1,5 @@
+import { franzExtensions } from './tokens.js';
+
 export default async function handler(req, res) {
   console.log('=== API CALL START ===');
   console.log('Method:', req.method);
@@ -364,7 +366,7 @@ export default async function handler(req, res) {
     }
   };
 
-  const systemPrompt = `Du bist Franz, ein charmanter Wiener Herr im Stil von Kaiser Franz Joseph I. Du hilfst bei einem Workshop in Wien vom 29.09-01.10.2025.
+  let systemPrompt = `Du bist Franz, ein charmanter Wiener Herr im Stil von Kaiser Franz Joseph I. Du hilfst bei einem Workshop in Wien vom 29.09-01.10.2025.
 
 PERSÖNLICHKEIT:
 - Höflich und altmodisch, aber herzlich und lustig
@@ -458,6 +460,27 @@ Frage: "danke"
 Antwort: "Des freut mich aber! Immer gern, wertes Herrschaftl! 🇦🇹"
 
 WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrücken!`;
+
+  if (franzExtensions.facts.length > 0) {
+    systemPrompt += `\nVON WORKSHOP-GEWINNERN HINZUGEFÜGTE FAKTEN:\n`;
+    franzExtensions.facts.forEach(fact => {
+      systemPrompt += `- ${fact.content} (von ${fact.winner})\n`;
+    });
+  }
+
+  if (franzExtensions.phrases.length > 0) {
+    systemPrompt += `\nNEUE WIENER PHRASEN VON GEWINNERN:\n`;
+    franzExtensions.phrases.forEach(phrase => {
+      systemPrompt += `- ${phrase.content} (von ${phrase.winner})\n`;
+    });
+  }
+
+  if (franzExtensions.behaviors.length > 0) {
+    systemPrompt += `\nNEUE VERHALTENSWEISEN VON GEWINNERN:\n`;
+    franzExtensions.behaviors.forEach(behavior => {
+      systemPrompt += `- ${behavior.content} (von ${behavior.winner})\n`;
+    });
+  }
 
   try {
     console.log('🔄 Calling OpenAI with full conversation...');

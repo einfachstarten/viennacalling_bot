@@ -1,8 +1,35 @@
-import { franzExtensions } from './tokens.js';
+import fs from 'fs';
+
+const STORAGE_FILE = '/tmp/franz-extensions.json';
+
+function loadExtensions() {
+  try {
+    if (fs.existsSync(STORAGE_FILE)) {
+      const data = fs.readFileSync(STORAGE_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      return {
+        facts: Array.isArray(parsed.facts) ? parsed.facts : [],
+        phrases: Array.isArray(parsed.phrases) ? parsed.phrases : [],
+        behaviors: Array.isArray(parsed.behaviors) ? parsed.behaviors : []
+      };
+    }
+  } catch (error) {
+    console.error('Error loading extensions:', error);
+  }
+
+  console.log('No extensions found, using empty state');
+  return {
+    facts: [],
+    phrases: [],
+    behaviors: []
+  };
+}
 
 export default async function handler(req, res) {
   console.log('=== API CALL START ===');
   console.log('Method:', req.method);
+
+  const franzExtensions = loadExtensions();
   console.log('Franz Extensions Status:', {
     facts: franzExtensions.facts.length,
     phrases: franzExtensions.phrases.length,

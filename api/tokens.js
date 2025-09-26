@@ -1,11 +1,55 @@
 // In-Memory Token Store (reset bei Deployment)
 let tokenStore = {
-  'win1-abc123': { used: false, winner: null, type: 'fact' },
-  'win2-def456': { used: false, winner: null, type: 'phrase' },
-  'win3-ghi789': { used: false, winner: null, type: 'behavior' },
-  'win4-jkl012': { used: false, winner: null, type: 'fact' },
-  'win5-mno345': { used: false, winner: null, type: 'phrase' },
-  // ... mehr Tokens nach Bedarf
+  "win1-h9l3s9": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win2-f64jy8": {
+    "used": false,
+    "winner": null,
+    "type": "behavior"
+  },
+  "win3-7aqakd": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win4-fkgp35": {
+    "used": false,
+    "winner": null,
+    "type": "fact"
+  },
+  "win5-3h29wn": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win6-csfwlf": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win7-azsevi": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win8-jw7l1j": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  },
+  "win9-4u65fi": {
+    "used": false,
+    "winner": null,
+    "type": "behavior"
+  },
+  "win10-0cuw5b": {
+    "used": false,
+    "winner": null,
+    "type": "phrase"
+  }
 };
 
 let franzExtensions = {

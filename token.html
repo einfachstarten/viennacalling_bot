@@ -161,15 +161,9 @@
                 if (response.ok) {
                     document.getElementById('tokenForm').style.display = 'block';
                     
-                    // Platzhalter je nach Type
+                    // Einfacher Platzhalter ohne Type-Logic
                     const contentField = document.getElementById('content');
-                    if (data.type === 'fact') {
-                        contentField.placeholder = 'z.B. "Franz weiß dass Max der beste Topgolf-Spieler ist"';
-                    } else if (data.type === 'phrase') {
-                        contentField.placeholder = 'z.B. "Franz sagt manchmal \'Leiwand oida!\'"';
-                    } else if (data.type === 'behavior') {
-                        contentField.placeholder = 'z.B. "Franz gratuliert dem Gewinner-Team bei jeder Antwort"';
-                    }
+                    contentField.placeholder = 'z.B. "Franz weiß dass die Sonne um die Erde kreist"';
                 } else {
                     showError(data.error);
                 }

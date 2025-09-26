@@ -147,7 +147,7 @@ export default async function handler(req, res) {
       "transport": {
         uber_tip: "Uber/Taxi für Rückweg etwa €15-25",
         public_return: "Öffis bis Stadtmitte etwa 45min",
-        emergency_contact: "Workshop-Leitung: +43 664 123 4567"
+        emergency_contact: "Workshop-Leitung: +43 660 6913321"
       },
       "food_allergies": {
         viva: "Glutenfrei und vegan auf Anfrage",
@@ -174,6 +174,193 @@ export default async function handler(req, res) {
       "payment": "Gesammelt am Ende beim Bayhost",
       "membership": "€6 einmalig für Lifetime Global Membership",
       "video": "https://www.youtube.com/watch?v=qOgBX-Ox-7I&t=50s"
+    },
+
+    contact: {
+      "workshop_lead": {
+        name: "Marcus",
+        phone: "+43 660 6913321",
+        role: "Workshop-Leitung & Hauptansprechpartner",
+        available: "Montag ab 8:00 im Büro, sonst zu allen Terminen",
+        whatsapp: "Ja, gleiche Nummer"
+      },
+      "openresearch": {
+        company: "OpenResearch GmbH",
+        office_hours: "Mo-Fr 8:00-18:00",
+        address: "Biberstraße 9, 4. Stock",
+        access: "Unten anläuten bei OpenResearch, jemand macht auf"
+      }
+    },
+
+    travel: {
+      "airport_to_city": {
+        s7: {
+          name: "S-Bahn S7",
+          frequency: "Alle 30 Minuten",
+          duration: "~16 Minuten bis Wien Mitte",
+          cost: "~4,40€ mit Wien-Ticket",
+          route: "Flughafen → Wien Mitte → Umsteigen zu U3/U4",
+          note: "Günstigste Option"
+        },
+        cat: {
+          name: "City Airport Train (CAT)",
+          frequency: "Alle 30 Minuten",
+          duration: "~16 Minuten bis Wien Mitte",
+          cost: "~12€",
+          route: "Flughafen → Wien Mitte (non-stop)",
+          note: "Schneller, aber teurer"
+        },
+        taxi: {
+          duration: "~30-45 Min je nach Verkehr",
+          cost: "~35-45€",
+          note: "Direkt, aber teuerste Option"
+        }
+      },
+      "between_locations": {
+        to_workshop: {
+          from_city: "U3 Herrengasse oder U1 Stephansplatz → 5 Min Fußweg",
+          note: "OpenResearch Office zentral gelegen"
+        },
+        to_insel: {
+          public: "U1 bis Kagran, dann Bus 84A bis Schüttaustraße",
+          duration_public: "~45 Minuten",
+          car: "Mit Marcus im 7-Sitzer oder eigenem Auto",
+          duration_car: "~25 Minuten",
+          note: "Öffis machbar, Auto entspannter"
+        },
+        to_topgolf: {
+          public: "S-Bahn bis Mödling, dann Bus/Taxi",
+          duration_public: "~60 Minuten",
+          car: "Mit Marcus im 7-Sitzer empfohlen",
+          duration_car: "~30 Minuten",
+          note: "Auto definitiv besser für Topgolf"
+        }
+      }
+    },
+
+    wien_tips: {
+      "public_transport": {
+        app: "WienMobil App installieren",
+        tickets: {
+          "24h": "~8€ - perfekt für 1 Tag",
+          "48h": "~14,10€ - ideal für Workshop",
+          "72h": "~17,10€ - falls länger in Wien"
+        },
+        note: "Tickets gelten für U-Bahn, Bus, Tram, S-Bahn",
+        zones: "Workshop-Locations alle in Zone 100 (Kernzone)"
+      },
+      "shopping": {
+        supermarkets: [
+          {
+            name: "Spar",
+            distance: "3 Minuten von OpenResearch",
+            hours: "Mo-Sa 7:00-21:00, So 8:00-18:00",
+            note: "Snacks, Getränke, Basics"
+          },
+          {
+            name: "Billa",
+            distance: "5 Minuten von OpenResearch",
+            hours: "Mo-Sa 7:00-21:00, So 8:00-18:00",
+            note: "Größere Auswahl, auch warme Speisen"
+          }
+        ],
+        pharmacy: {
+          name: "Apotheke zur Goldenen Kugel",
+          distance: "2 Minuten von OpenResearch",
+          address: "Graben 13, 1010 Wien",
+          hours: "Mo-Fr 8:00-18:30, Sa 8:00-12:00"
+        }
+      },
+      "local_recommendations": {
+        coffee_near_office: [
+          "Café Central (5 Min) - Wiener Kaffeehaus-Klassiker",
+          "Phil (3 Min) - Modern, guter Flat White",
+          "Café Hawelka (7 Min) - Legendäre Melange"
+        ],
+        quick_lunch: [
+          "Figlmüller Bäckerstraße - Original Wiener Schnitzel",
+          "Vapiano Graben (4 Min) - Schnelle italienische Küche",
+          "Dean & David (3 Min) - Salate und gesundes Essen"
+        ],
+        sightseeing_breaks: [
+          "Stephansdom (5 Min Fußweg) - Wahrzeichen Wiens",
+          "Graben & Kohlmarkt (2 Min) - Einkaufsstraßen",
+          "Hofburg (8 Min) - Kaiserpalast"
+        ]
+      }
+    },
+
+    workshop_details: {
+      "check_in": {
+        monday: {
+          time: "Ab 8:00 Uhr",
+          location: "OpenResearch Office, 4. Stock",
+          process: "Unten anläuten bei OpenResearch → jemand macht auf",
+          contact: "Marcus ist ab 8:00 vor Ort"
+        },
+        other_days: {
+          process: "Direkt zu den Treffpunkten laut Zeitplan",
+          late_arrival: "Marcus unter +43 660 6913321 anrufen/WhatsApp"
+        }
+      },
+      "tech_setup": {
+        wifi: {
+          password: "Bei Marcus oder OpenResearch-Team erfragen"
+        }
+      }
+    },
+
+    weather_backup: {
+      "current_season": "Ende September - mild, aber unberechenbar",
+      "recommended_clothing": [
+        "Lagenlook: T-Shirt + Pullover + leichte Jacke",
+        "Geschlossene Schuhe (auch für Topgolf)",
+        "Regenschirm oder Regenjacke",
+        "Warme Jacke für Meine Insel (Outdoor)"
+      ],
+      "indoor_alternatives": {
+        "instead_of_insel": [
+          "Battlekart - Indoor Kartbahn",
+          "Die Allee - Bowling & Entertainment"
+        ],
+        "contingency": "Entscheidung wird vor Ort getroffen"
+      }
+    },
+
+    costs_and_payments: {
+      "included": [
+        "Alle Mahlzeiten (Viva la Mamma, Figlmüller, Meissl & Schadn)",
+        "Meine Insel Reservierung + Pizzaofen",
+        "Topgolf Spielzeit (2 Stunden)"
+      ],
+      "self_pay": [
+        "Topgolf Membership (€6 pro Person - einmalig)",
+        "Zusätzliche Getränke/Snacks",
+        "Anreise/Abreise nach Wien",
+        "Öffi-Tickets in Wien",
+        "Private Sightseeing/Shopping"
+      ],
+      "tips": {
+        "restaurants": "10% Trinkgeld ist üblich in Wien",
+        "taxis": "Aufrunden oder 10%",
+        "bars": "€1-2 pro Drink"
+      }
+    },
+
+    emergency: {
+      "workshop_issues": {
+        primary: "Marcus +43 660 6913321 (WhatsApp verfügbar)",
+        office: "OpenResearch Office: Biberstraße 9, 4. Stock"
+      },
+      "medical": {
+        emergency: "144 (Rettung)",
+        pharmacy_emergency: "1455 (Nacht-Apotheken)"
+      },
+      "general": {
+        police: "133",
+        fire: "122",
+        tourist_help: "+43 1 24 555 (Wien Tourismus)"
+      }
     }
   };
 

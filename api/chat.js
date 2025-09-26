@@ -26,16 +26,14 @@ function loadExtensions() {
 }
 
 export default async function handler(req, res) {
-  console.log('=== API CALL START ===');
+  console.log('=== CHAT API START ===');
   console.log('Method:', req.method);
 
   const franzExtensions = loadExtensions();
-  console.log('Franz Extensions Status:', {
-    facts: franzExtensions.facts.length,
-    phrases: franzExtensions.phrases.length,
-    behaviors: franzExtensions.behaviors.length,
-    allExtensions: franzExtensions
-  });
+  console.log('🔍 RAW Extensions loaded:', JSON.stringify(franzExtensions, null, 2));
+  console.log('🔍 Facts count:', franzExtensions.facts?.length || 0);
+  console.log('🔍 Phrases count:', franzExtensions.phrases?.length || 0);
+  console.log('🔍 Behaviors count:', franzExtensions.behaviors?.length || 0);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -617,30 +615,41 @@ Frage: "was machen wir heute?"
 Frage: "welcher tag ist heute?"
 Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshopDay}!` : 'Kein Workshop heute.'}"`;
 
+  console.log('🔍 Building systemPrompt with extensions...');
+
   if (franzExtensions.facts.length > 0) {
+    console.log('✅ Adding facts to systemPrompt:', franzExtensions.facts);
     systemPrompt += `\nVON WORKSHOP-GEWINNERN HINZUGEFÜGTE FAKTEN:\n`;
     franzExtensions.facts.forEach(fact => {
       systemPrompt += `- ${fact.content} (von ${fact.winner})\n`;
     });
+  } else {
+    console.log('❌ No facts found');
   }
 
   if (franzExtensions.phrases.length > 0) {
+    console.log('✅ Adding phrases to systemPrompt:', franzExtensions.phrases);
     systemPrompt += `\nNEUE WIENER PHRASEN VON GEWINNERN:\n`;
     franzExtensions.phrases.forEach(phrase => {
       systemPrompt += `- ${phrase.content} (von ${phrase.winner})\n`;
     });
+  } else {
+    console.log('❌ No phrases found');
   }
 
   if (franzExtensions.behaviors.length > 0) {
+    console.log('✅ Adding behaviors to systemPrompt:', franzExtensions.behaviors);
     systemPrompt += `\nNEUE VERHALTENSWEISEN VON GEWINNERN:\n`;
     franzExtensions.behaviors.forEach(behavior => {
       systemPrompt += `- ${behavior.content} (von ${behavior.winner})\n`;
     });
+  } else {
+    console.log('❌ No behaviors found');
   }
 
-  console.log('=== SYSTEM PROMPT ===');
-  console.log(systemPrompt);
-  console.log('=== END SYSTEM PROMPT ===');
+  console.log('🔍 FINAL SYSTEM PROMPT PREVIEW (last 800 chars):');
+  console.log(systemPrompt.substring(Math.max(0, systemPrompt.length - 800)));
+  console.log('🔍 SYSTEM PROMPT LENGTH:', systemPrompt.length);
 
   try {
     console.log('🔄 Calling OpenAI with full conversation...');

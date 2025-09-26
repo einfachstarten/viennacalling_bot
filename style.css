@@ -102,10 +102,23 @@ body {
 }
 
 .message a {
-  color: inherit;
+  color: #0066cc;
   font-weight: 600;
   text-decoration: underline;
   word-break: break-all;
+  transition: color 0.2s ease;
+}
+
+.message a:hover {
+  color: #004499;
+}
+
+.bot-message a {
+  color: #d62828;
+}
+
+.bot-message a:hover {
+  color: #b01e1e;
 }
 
 .chat-input {

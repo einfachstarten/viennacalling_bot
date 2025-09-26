@@ -9,7 +9,9 @@ const STATIC_FILES = [
   '/script.js',
   '/data.js',
   '/pwa.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/android/android-launchericon-192-192.png',
+  '/android/android-launchericon-512-512.png'
 ];
 
 // API endpoints to cache

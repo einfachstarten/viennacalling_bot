@@ -1,23 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wien Workshop Bot</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chat-Bot mit Infos zum Wien Workshop (Zeit, Ort, Essen, Reservierungen).">
+  <title>Wien Workshop Bot</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">🇦🇹 Wien Workshop Info</div>
-        <div class="chat-messages" id="messages">
-            <div class="bot-message">Hi! Frag mich was über den Workshop (Zeit, Ort, Essen, etc.)</div>
-        </div>
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="z.B. wann essen montag?" onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">→</button>
-        </div>
+  <div class="chat-container" role="main">
+    <header class="chat-header">🇦🇹 Wien Workshop Info</header>
+    <section class="chat-messages" id="messages" aria-live="polite">
+      <div class="message bot-message">Hi! Frag mich was über den Workshop (Zeit, Ort, Essen, etc.)</div>
+    </section>
+    <div class="chat-input">
+      <form onsubmit="event.preventDefault(); sendMessage();">
+        <label class="visually-hidden" for="userInput">Nachricht eingeben</label>
+        <input id="userInput" type="text" autocomplete="off" placeholder="z.B. wann essen montag?">
+        <button type="submit" aria-label="Nachricht senden">➤</button>
+      </form>
     </div>
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+  </div>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

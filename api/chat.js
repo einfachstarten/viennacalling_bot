@@ -1,23 +1,31 @@
 export default async function handler(req, res) {
-  console.log('API Key verfügbar:', !!process.env.OPENAI_API_KEY);
+  console.log('=== API CALL START ===');
+  console.log('Method:', req.method);
+  console.log('Body:', req.body);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body || {};
-  console.log('Nachricht erhalten:', message);
+  const { message } = req.body;
+  console.log('Message received:', message);
 
   if (!message || message.length > 500) {
     return res.status(400).json({ error: 'Invalid message' });
   }
 
+  // Environment Variable Check
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  console.log('API Key Status:', {
+    exists: !!OPENAI_API_KEY,
+    length: OPENAI_API_KEY ? OPENAI_API_KEY.length : 0,
+    starts_with: OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 7) : 'MISSING'
+  });
 
   if (!OPENAI_API_KEY) {
-    console.error('OPENAI_API_KEY not found in environment variables');
+    console.error('❌ OPENAI_API_KEY not found!');
     return res.status(500).json({
-      error: 'Na servas, da fehlt was in der Konfiguration! 🤖'
+      error: 'Mit Verlaub, da fehlt der Schlüssel zur OpenAI Schatzkammer! 🗝️'
     });
   }
 
@@ -172,7 +180,7 @@ export default async function handler(req, res) {
 PERSÖNLICHKEIT:
 - Höflich und altmodisch, aber herzlich
 - Sprichst Wienerisch mit modernen Elementen
-- Verwendest "Euer Gnaden", "geruhen", "allergnädigst" 
+- Verwendest "Euer Gnaden", "geruhen", "allergnädigst"
 - Aber auch moderne Wiener Ausdrücke wie "leiwand", "ur", "oida"
 - Immer respektvoll, nie herablassend
 - Wie ein charmanter Opa der auch hip ist
@@ -205,6 +213,8 @@ Frage: "schaff ich um 13 uhr noch das essen?"
 Antwort: "Mit Verlaub, selbstverständlich! Des Mittagsmahl geht ab 12 Uhr, bis 13 Uhr is noch alles bestens. Des passt scho, wertes Herrschaftl! ☕"`;
 
   try {
+    console.log('🔄 Calling OpenAI API...');
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -222,19 +232,32 @@ Antwort: "Mit Verlaub, selbstverständlich! Des Mittagsmahl geht ab 12 Uhr, bis 
       })
     });
 
+    console.log('OpenAI Response Status:', response.status);
+    console.log('OpenAI Response Headers:', Object.fromEntries(response.headers.entries()));
+
     const data = await response.json();
+    console.log('OpenAI Response Data:', data);
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'OpenAI API error');
+      console.error('❌ OpenAI API Error:', data);
+      throw new Error(data.error?.message || `HTTP ${response.status}`);
     }
 
+    const aiMessage = data.choices[0].message.content;
+    console.log('✅ AI Response:', aiMessage);
+
     return res.status(200).json({
-      message: data.choices[0].message.content
+      message: aiMessage
     });
   } catch (error) {
-    console.error('OpenAI API Error:', error);
+    console.error('❌ FULL ERROR:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+
     return res.status(500).json({
-      error: 'Na servas, da is wohl was schiefgegangen! Versuchen Sie es nochmal, Euer Gnaden! 👑'
+      error: `Na servas! Fehler: ${error.message}`
     });
   }
 }

@@ -1,32 +1,13 @@
-import fs from 'fs';
+import { kv } from '@vercel/kv';
 
-const STORAGE_FILE = '/tmp/franz-extensions.json';
+// KV Storage Keys
+const EXTENSIONS_KEY = 'franz-extensions';
+const TOKEN_STORE_KEY = 'token-store';
 
-function loadExtensions() {
-  try {
-    if (fs.existsSync(STORAGE_FILE)) {
-      const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Error loading extensions:', error);
-  }
-  return { extensions: [] };
-}
-
-function saveExtensions(extensions) {
-  try {
-    fs.writeFileSync(STORAGE_FILE, JSON.stringify(extensions, null, 2));
-    console.log('Extensions saved:', extensions);
-  } catch (error) {
-    console.error('Error saving extensions:', error);
-  }
-}
-
-// Token Store ohne Types
-let tokenStore = {
+// Initial Token Store (wird in KV gespeichert)
+const defaultTokenStore = {
   "win1-bjrqke": { used: true, winner: "Mustermann" },
-  "win2-a2wyl9": { used: false, winner: null },
+  "win2-a2wyl9": { used: true, winner: "Musterfrau" },
   "win3-56f4fy": { used: false, winner: null },
   "win4-cw966v": { used: false, winner: null },
   "win5-4ehpm5": { used: false, winner: null },
@@ -37,9 +18,49 @@ let tokenStore = {
   "win10-uynio4": { used: false, winner: null }
 };
 
+async function loadExtensions() {
+  try {
+    const extensions = await kv.get(EXTENSIONS_KEY);
+    return extensions || { extensions: [] };
+  } catch (error) {
+    console.error('Error loading extensions from KV:', error);
+    return { extensions: [] };
+  }
+}
+
+async function saveExtensions(extensions) {
+  try {
+    await kv.set(EXTENSIONS_KEY, extensions);
+    console.log('Extensions saved to KV:', extensions);
+  } catch (error) {
+    console.error('Error saving extensions to KV:', error);
+  }
+}
+
+async function loadTokenStore() {
+  try {
+    const tokenStore = await kv.get(TOKEN_STORE_KEY);
+    return tokenStore || defaultTokenStore;
+  } catch (error) {
+    console.error('Error loading token store from KV:', error);
+    return defaultTokenStore;
+  }
+}
+
+async function saveTokenStore(tokenStore) {
+  try {
+    await kv.set(TOKEN_STORE_KEY, tokenStore);
+    console.log('Token store saved to KV');
+  } catch (error) {
+    console.error('Error saving token store to KV:', error);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { token } = req.query;
+
+    const tokenStore = await loadTokenStore();
 
     if (!token || !tokenStore[token]) {
       return res.status(404).json({ error: 'Token nicht gefunden' });
@@ -56,21 +77,13 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    console.log('=== TOKEN SUBMISSION START ===');
+    console.log('=== TOKEN SUBMISSION START (KV) ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
-    
+
     const { token, content, winner_name } = req.body;
 
     if (!token || !content || !winner_name) {
       return res.status(400).json({ error: 'Token, Content und Name erforderlich' });
-    }
-
-    if (!tokenStore[token]) {
-      return res.status(404).json({ error: 'Token nicht gefunden' });
-    }
-
-    if (tokenStore[token].used) {
-      return res.status(410).json({ error: 'Token bereits verwendet' });
     }
 
     if (content.length > 150) {
@@ -81,15 +94,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name zu lang (max 30 Zeichen)' });
     }
 
+    // Token Store laden
+    const tokenStore = await loadTokenStore();
+
+    if (!tokenStore[token]) {
+      return res.status(404).json({ error: 'Token nicht gefunden' });
+    }
+
+    if (tokenStore[token].used) {
+      return res.status(410).json({ error: 'Token bereits verwendet' });
+    }
+
     console.log('✅ Validation passed');
 
     // Extensions laden
-    let allExtensions = loadExtensions();
+    const allExtensions = await loadExtensions();
     if (!Array.isArray(allExtensions.extensions)) {
       allExtensions.extensions = [];
     }
-    console.log('🔍 Current extensions:', JSON.stringify(allExtensions, null, 2));
-    
+    console.log('🔍 Current extensions from KV:', JSON.stringify(allExtensions, null, 2));
+
     const entry = {
       content,
       winner: winner_name,
@@ -100,35 +124,24 @@ export default async function handler(req, res) {
     // Token markieren
     tokenStore[token].used = true;
     tokenStore[token].winner = winner_name;
-    console.log('✅ Token marked as used');
+    await saveTokenStore(tokenStore);
+    console.log('✅ Token marked as used in KV');
 
     // Extension hinzufügen
     allExtensions.extensions.push(entry);
     console.log('✅ Extension added:', entry);
     console.log('🔍 All extensions after adding:', JSON.stringify(allExtensions, null, 2));
-    
-    // Speichern mit Debug
-    console.log('💾 Saving to:', STORAGE_FILE);
-    try {
-      const dataToSave = JSON.stringify(allExtensions, null, 2);
-      console.log('💾 Data to save:', dataToSave);
-      
-      fs.writeFileSync(STORAGE_FILE, dataToSave);
-      console.log('✅ Save completed');
-      
-      // Verification
-      if (fs.existsSync(STORAGE_FILE)) {
-        const verification = fs.readFileSync(STORAGE_FILE, 'utf8');
-        console.log('🔍 File content after save:', verification);
-      } else {
-        console.log('❌ File does not exist after save!');
-      }
-      
-    } catch (error) {
-      console.error('❌ Save error:', error);
-    }
 
-    console.log('=== TOKEN SUBMISSION END ===');
+    // In KV speichern
+    console.log('💾 Saving to KV...');
+    await saveExtensions(allExtensions);
+    console.log('✅ Save to KV completed');
+
+    // Verification
+    const verification = await loadExtensions();
+    console.log('🔍 KV content after save:', JSON.stringify(verification, null, 2));
+
+    console.log('=== TOKEN SUBMISSION END (KV) ===');
 
     return res.status(200).json({
       success: true,
@@ -142,14 +155,18 @@ export default async function handler(req, res) {
   if (req.method === 'DELETE') {
     const { admin_key } = req.body || {};
     if (admin_key === 'workshop2025admin') {
+      const tokenStore = await loadTokenStore();
+      const extensions = await loadExtensions();
+
       const status = Object.entries(tokenStore).map(([token, data]) => ({
         token: `${token.substring(0, 8)}...`,
         used: data.used,
         winner: data.winner
       }));
+
       return res.status(200).json({
         tokens: status,
-        extensions: loadExtensions()
+        extensions: extensions
       });
     }
     return res.status(403).json({ error: 'Admin Key ungültig' });

@@ -1,26 +1,16 @@
-import fs from 'fs';
+import { kv } from '@vercel/kv';
 
-const STORAGE_FILE = '/tmp/franz-extensions.json';
-
-function loadExtensions() {
+async function loadExtensions() {
   try {
-    if (fs.existsSync(STORAGE_FILE)) {
-      const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed.extensions)) {
-        return { extensions: parsed.extensions };
-      }
-      if (Array.isArray(parsed)) {
-        return { extensions: parsed };
-      }
-      return { extensions: [] };
+    const extensions = await kv.get('franz-extensions');
+    if (extensions && Array.isArray(extensions.extensions)) {
+      return { extensions: extensions.extensions };
     }
+    return { extensions: [] };
   } catch (error) {
-    console.error('Error loading extensions:', error);
+    console.error('Error loading extensions from KV:', error);
+    return { extensions: [] };
   }
-
-  console.log('No extensions found, using empty state');
-  return { extensions: [] };
 }
 
 export default async function handler(req, res) {
@@ -608,7 +598,7 @@ Frage: "was machen wir heute?"
 Frage: "welcher tag ist heute?"
 Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshopDay}!` : 'Kein Workshop heute.'}"`;
 
-  const franzExtensions = loadExtensions();
+  const franzExtensions = await loadExtensions();
   console.log('🔍 Extensions loaded:', JSON.stringify(franzExtensions, null, 2));
   console.log('🔍 Total extensions:', (franzExtensions.extensions || []).length);
 

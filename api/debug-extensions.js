@@ -1,6 +1,6 @@
-import fs from 'fs';
+import { kv } from '@vercel/kv';
 
-const STORAGE_FILE = '/tmp/franz-extensions.json';
+const EXTENSIONS_KEY = 'franz-extensions';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,27 +8,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    let extensions = { extensions: [] };
-
-    if (fs.existsSync(STORAGE_FILE)) {
-      const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-      extensions = JSON.parse(data);
-    }
+    const extensions = await kv.get(EXTENSIONS_KEY);
+    const extensionsList = extensions?.extensions || [];
 
     return res.status(200).json({
-      fileExists: fs.existsSync(STORAGE_FILE),
-      extensions: extensions.extensions || [],
-      totalExtensions: (extensions.extensions || []).length,
+      fileExists: true, // KV ist immer "da"
+      extensions: extensionsList,
+      totalExtensions: extensionsList.length,
       debug: {
-        storageFile: STORAGE_FILE,
+        storageType: 'Vercel KV',
         timestamp: new Date().toISOString()
       }
     });
   } catch (error) {
     return res.status(500).json({
       error: error.message,
-      storageFile: STORAGE_FILE,
-      fileExists: fs.existsSync(STORAGE_FILE)
+      storageType: 'Vercel KV'
     });
   }
 }

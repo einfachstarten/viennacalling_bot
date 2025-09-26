@@ -193,27 +193,85 @@ export default async function handler(req, res) {
 
   // Admin endpoint
   if (req.method === 'DELETE') {
-    const { admin_key } = req.body || {};
-    if (admin_key === 'workshop2025admin') {
+    const { admin_key, action } = req.body || {};
+
+    if (admin_key !== 'workshop2025admin') {
+      return res.status(403).json({ error: 'Admin Key ungültig' });
+    }
+
+    if (action === 'reset_tokens') {
+      console.log('🔄 ADMIN RESET: Resetting all tokens...');
+
       const tokenStore = await loadTokenStore();
-      const extensions = await loadExtensions();
-      
-      const status = Object.entries(tokenStore).map(([token, data]) => ({
-        token: `${token.substring(0, 8)}...`,
-        used: data.used,
-        winner: data.winner
-      }));
-      
+
+      Object.keys(tokenStore).forEach(token => {
+        tokenStore[token].used = false;
+        tokenStore[token].winner = null;
+      });
+
+      await saveTokenStore(tokenStore);
+      console.log('✅ All tokens reset to unused');
+
       return res.status(200).json({
-        tokens: status,
-        extensions: extensions,
-        debug: {
-          redisAvailable: isRedisAvailable(),
-          storageType: isRedisAvailable() ? 'Redis' : 'Memory'
-        }
+        success: true,
+        message: 'Alle Tokens wurden zurückgesetzt',
+        resetTokens: Object.keys(tokenStore).length
       });
     }
-    return res.status(403).json({ error: 'Admin Key ungültig' });
+
+    if (action === 'reset_extensions') {
+      console.log('🔄 ADMIN RESET: Clearing all extensions...');
+
+      const emptyExtensions = { extensions: [] };
+      await saveExtensions(emptyExtensions);
+      console.log('✅ All extensions cleared');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Franz-Wissen wurde zurückgesetzt'
+      });
+    }
+
+    if (action === 'full_reset') {
+      console.log('🔄 ADMIN RESET: Full system reset...');
+
+      const tokenStore = await loadTokenStore();
+      Object.keys(tokenStore).forEach(token => {
+        tokenStore[token].used = false;
+        tokenStore[token].winner = null;
+      });
+      await saveTokenStore(tokenStore);
+
+      const emptyExtensions = { extensions: [] };
+      await saveExtensions(emptyExtensions);
+
+      console.log('✅ Full system reset completed');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Kompletter Reset durchgeführt',
+        resetTokens: Object.keys(tokenStore).length,
+        clearedExtensions: true
+      });
+    }
+
+    const tokenStore = await loadTokenStore();
+    const extensions = await loadExtensions();
+
+    const status = Object.entries(tokenStore).map(([token, data]) => ({
+      token: `${token.substring(0, 8)}...`,
+      used: data.used,
+      winner: data.winner
+    }));
+
+    return res.status(200).json({
+      tokens: status,
+      extensions: extensions,
+      debug: {
+        redisAvailable: isRedisAvailable(),
+        storageType: isRedisAvailable() ? 'Redis' : 'Memory'
+      }
+    });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

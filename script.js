@@ -95,11 +95,31 @@ async function processUserMessage(message) {
     conversationHistory.push({ role: 'assistant', content: response });
 
     addMessage(formatBotMessage(response), true, { allowHTML: true });
+
+    // Analytics: Track successful response
+    trackEvent('bot_response_success', {
+      response_length: response.length,
+      conversation_length: conversationHistory.length,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     if (loadingBubble.parentNode === messagesEl) {
       messagesEl.removeChild(loadingBubble);
     }
     addMessage('Sorry, da ist was schiefgelaufen. Versuch es nochmal! 🔄', true);
+
+    // Analytics: Track error
+    trackEvent('bot_response_error', {
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Analytics Event Tracking
+function trackEvent(eventName, properties = {}) {
+  if (typeof window.va === 'function') {
+    window.va('track', eventName, properties);
   }
 }
 
@@ -108,6 +128,14 @@ async function sendMessage() {
   if (message === '') return;
 
   addMessage(message, false);
+
+  // Analytics: Track user message
+  trackEvent('message_sent', {
+    message_length: message.length,
+    has_question_mark: message.includes('?'),
+    timestamp: new Date().toISOString()
+  });
+
   inputEl.value = '';
   inputEl.focus();
 
@@ -118,3 +146,11 @@ async function askQuick(question) {
   inputEl.value = question;
   await sendMessage();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  trackEvent('page_loaded', {
+    user_agent: navigator.userAgent,
+    is_mobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    timestamp: new Date().toISOString()
+  });
+});

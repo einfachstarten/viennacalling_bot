@@ -205,23 +205,57 @@
                 });
                 
                 const result = await response.json();
-                
+
                 if (response.ok) {
+                    // Analytics: Track successful token usage
+                    if (typeof window.va === 'function') {
+                        window.va('track', 'token_redeemed', {
+                            content_length: content.length,
+                            winner_name_length: winner_name.length,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
                     showSuccess(`🎉 Super! Franz hat "${content}" gelernt. Probiert es aus!`);
                     document.getElementById('tokenForm').style.display = 'none';
                 } else {
+                    // Analytics: Track token error
+                    if (typeof window.va === 'function') {
+                        window.va('track', 'token_error', {
+                            error: result.error,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
                     showError(result.error);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Franz Updaten! 🚀';
                 }
-                
+
             } catch (error) {
+                // Analytics: Track network error
+                if (typeof window.va === 'function') {
+                    window.va('track', 'token_network_error', {
+                        error: error.message,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
                 showError('Fehler beim Speichern');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Franz Updaten! 🚀';
             }
         });
-        
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.va === 'function') {
+                window.va('track', 'token_page_loaded', {
+                    has_token: !!token,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
         function showError(message) {
             const status = document.getElementById('status');
             status.className = 'status error';
@@ -236,5 +270,9 @@
             status.style.display = 'block';
         }
     </script>
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

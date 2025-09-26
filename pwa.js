@@ -108,7 +108,15 @@ class PWAManager {
     try {
       await this.deferredPrompt.prompt();
       const choiceResult = await this.deferredPrompt.userChoice;
-      
+
+      // Analytics: Track installation
+      if (typeof window.va === 'function') {
+        window.va('track', 'pwa_install_prompt', {
+          outcome: choiceResult.outcome,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       if (choiceResult.outcome === 'accepted') {
         console.log('PWA: User accepted install');
       } else {
@@ -159,8 +167,17 @@ class PWAManager {
   setupOfflineDetection() {
     const updateOnlineStatus = () => {
       this.isOnline = navigator.onLine;
+
+      // Analytics: Track connectivity
+      if (typeof window.va === 'function') {
+        window.va('track', 'connectivity_change', {
+          online: this.isOnline,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       const indicator = document.getElementById('offlineIndicator');
-      
+
       if (indicator) {
         if (this.isOnline) {
           indicator.style.display = 'none';

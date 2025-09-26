@@ -268,6 +268,13 @@
                 const result = await response.json();
 
                 if (response.ok) {
+                    // Analytics: Track admin action
+                    if (typeof window.va === 'function') {
+                        window.va('track', 'admin_reset_tokens', {
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
                     showSuccess(result.message);
                     refreshAll();
                 } else {
@@ -344,6 +351,13 @@
                 const result = await response.json();
 
                 if (response.ok) {
+                    // Analytics: Track full reset
+                    if (typeof window.va === 'function') {
+                        window.va('track', 'admin_full_reset', {
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
                     showSuccess(result.message);
                     refreshAll();
                 } else {
@@ -468,11 +482,23 @@
             loadFranzExtensions();
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.va === 'function') {
+                window.va('track', 'admin_page_loaded', {
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
         // Auto-load on page load
         setTimeout(() => {
             document.getElementById('adminPassword').value = 'workshop2025admin';
             refreshAll();
         }, 500);
     </script>
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

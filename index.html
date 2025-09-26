@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wien Workshop Bot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">🇦🇹 Wien Workshop Info</div>
+        <div class="chat-messages" id="messages">
+            <div class="bot-message">Hi! Frag mich was über den Workshop (Zeit, Ort, Essen, etc.)</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="z.B. wann essen montag?" onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">→</button>
+        </div>
+    </div>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

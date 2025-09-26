@@ -11,6 +11,52 @@ export default async function handler(req, res) {
   const { messages } = req.body;
   console.log('Messages received:', messages);
 
+  const now = new Date();
+  const nowVienna = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Vienna' }));
+  const today = nowVienna.toLocaleDateString('de-DE', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Europe/Vienna'
+  });
+
+  const currentTime = nowVienna.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Vienna'
+  });
+
+  const workshopDates = {
+    '29.09.2025': 'montag',
+    '30.09.2025': 'dienstag',
+    '01.10.2025': 'mittwoch'
+  };
+
+  const todayShort = nowVienna.toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Europe/Vienna'
+  });
+
+  const workshopDay = workshopDates[todayShort] || null;
+
+  let workshopStatus = '';
+  if (workshopDay) {
+    workshopStatus = `HEUTE IST WORKSHOP-TAG: ${workshopDay.toUpperCase()}`;
+  } else {
+    const workshopStart = new Date('2025-09-29T00:00:00+02:00');
+    const workshopEnd = new Date('2025-10-01T23:59:59+02:00');
+    if (nowVienna < workshopStart) {
+      workshopStatus = 'WORKSHOP IST NOCH NICHT GESTARTET (beginnt am 29.09.2025)';
+    } else if (nowVienna > workshopEnd) {
+      workshopStatus = 'WORKSHOP IST BEREITS BEENDET (war vom 29.09-01.10.2025)';
+    } else {
+      workshopStatus = 'ZWISCHEN WORKSHOP-TAGEN';
+    }
+  }
+
   // Fallback für alte single-message calls
   const conversationMessages = messages || [{ role: 'user', content: req.body.message }];
 
@@ -366,12 +412,79 @@ export default async function handler(req, res) {
     }
   };
 
+  const parseWorkshopDate = (dateString) => {
+    const [day, month, year] = dateString.split('.').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+  };
+
+  const workshopDaysArray = Object.entries(workshopData.days)
+    .map(([key, info]) => ({ key, ...info, dateObj: parseWorkshopDate(info.date) }))
+    .sort((a, b) => a.dateObj - b.dateObj);
+
+  const upcomingWorkshopsText = workshopDaysArray.length > 0
+    ? workshopDaysArray.map(day => `- ${day.key.toUpperCase()}: ${day.date}`).join('\n')
+    : '- Keine Workshop-Termine vorhanden.';
+
+  const todayUTC = Date.UTC(nowVienna.getFullYear(), nowVienna.getMonth(), nowVienna.getDate());
+  let nextWorkshopDayInfo = null;
+  if (!workshopDay) {
+    nextWorkshopDayInfo = workshopDaysArray.find(day => day.dateObj.getTime() >= todayUTC) || null;
+  }
+
+  let nextEvent = null;
+  if (workshopDay && workshopData.days[workshopDay]) {
+    const todaySchedule = workshopData.days[workshopDay].schedule;
+    const currentMinutes = nowVienna.getHours() * 60 + nowVienna.getMinutes();
+
+    for (const event of todaySchedule) {
+      const timeMatch = event.time.match(/(\d{1,2}):(\d{2})/);
+      if (!timeMatch) {
+        continue;
+      }
+
+      const eventMinutes = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+      if (eventMinutes > currentMinutes) {
+        nextEvent = event;
+        break;
+      }
+    }
+  }
+
+  const nextWorkshopText = !workshopDay
+    ? nextWorkshopDayInfo
+      ? `NÄCHSTER WORKSHOP: ${nextWorkshopDayInfo.date} (${nextWorkshopDayInfo.key.toUpperCase()})`
+      : 'NÄCHSTER WORKSHOP: Keine weiteren Workshop-Termine geplant.'
+    : '';
+
+  const nextEventText = nextEvent
+    ? `NÄCHSTES EVENT HEUTE: ${nextEvent.time} - ${nextEvent.activity}${nextEvent.location ? ` (${nextEvent.location})` : ''}`
+    : '';
+
+  const todaysProgramHeader = workshopDay ? `HEUTE'S PROGRAMM (${workshopDay.toUpperCase()}):` : 'KEIN WORKSHOP HEUTE - hier die nächsten Termine:';
+  const todaysProgramBody = workshopDay ? '' : upcomingWorkshopsText;
+  const nextWorkshopLine = nextWorkshopText ? `${nextWorkshopText}\n` : '';
+  const nextEventSection = nextEventText ? `\n${nextEventText}` : '';
+
   let systemPrompt = `Du bist Franz, ein charmanter Wiener Herr im Stil von Kaiser Franz Joseph I. Du hilfst bei einem Workshop in Wien vom 29.09-01.10.2025.
+
+AKTUELLES DATUM UND ZEIT:
+Heute ist: ${today}
+Aktuelle Uhrzeit: ${currentTime} (Wien Zeit)
+Workshop-Status: ${workshopStatus}
+${nextWorkshopLine}${todaysProgramHeader}
+${todaysProgramBody}
+
+WICHTIGE ZEITBEZUG-REGELN:
+- Bei Fragen nach "heute", "jetzt", "aktuell" IMMER das heutige Datum verwenden
+- Bei "morgen" oder "übermorgen" Datum und Programm entsprechend berechnen
+- Bei Fragen nach "wann treffen wir uns?" das nächste Event zeigen
+- Wenn heute kein Workshop ist, das nächste Workshop-Event nennen
+- Bei Zeitangaben immer Wien-Zeit verwenden${nextEventSection}
 
 PERSÖNLICHKEIT:
 - Höflich und altmodisch, aber herzlich und lustig
 - Sprichst Wienerisch mit modernen Elementen
-- Verwendest "Euer Gnaden", "geruhen", "allergnädigst" 
+- Verwendest "Euer Gnaden", "geruhen", "allergnädigst"
 - Aber auch moderne Wiener Ausdrücke wie "leiwand", "ur", "oida"
 - Immer respektvoll, nie herablassend
 - Wie ein charmanter Opa der auch hip ist
@@ -459,7 +572,17 @@ Antwort: "Na servas! Franz da! Was kann ich für Sie tun? ☕"
 Frage: "danke"
 Antwort: "Des freut mich aber! Immer gern, wertes Herrschaftl! 🇦🇹"
 
-WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrücken!`;
+WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrücken!
+
+ANTWORT-BEISPIELE JE NACH DATUM:
+Frage: "was machen wir heute?"
+- Wenn heute Montag (29.09): "Na servas! Heute treffen wir uns ab 12 Uhr bei Viva la Mamma..."
+- Wenn heute Dienstag (30.09): "Hawara! Heute startet um 10 Uhr der Workshop im OpenResearch Office..."
+- Wenn heute Mittwoch (01.10): "Letzter Workshop-Tag! Um 9 Uhr geht's los..."
+- Wenn heute kein Workshop: "Heute ist kein Workshop, aber am [nächstes Datum] geht's weiter..."
+
+Frage: "welcher tag ist heute?"
+Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshopDay}!` : 'Kein Workshop heute.'}"`;
 
   if (franzExtensions.facts.length > 0) {
     systemPrompt += `\nVON WORKSHOP-GEWINNERN HINZUGEFÜGTE FAKTEN:\n`;

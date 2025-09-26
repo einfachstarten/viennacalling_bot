@@ -216,6 +216,47 @@
             color: white;
         }
 
+        .question-type.uncertain {
+            background: #ff9800;
+            color: white;
+        }
+
+        .question-analysis {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #ff9800;
+        }
+
+        .confidence-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+
+        .confidence-low {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .confidence-very-low {
+            background: #dc3545;
+            color: white;
+        }
+
+        .priority-high {
+            border-left: 4px solid #dc3545 !important;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #ffc107 !important;
+        }
+
         .question-timestamp {
             font-size: 11px;
             color: #666;
@@ -342,10 +383,18 @@
                 <span class="stat-number" id="unresolvedQuestions">0</span>
                 <span class="stat-label">Ungelöst</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-number" id="highPriorityQuestions">0</span>
+                <span class="stat-label">High Priority</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="uncertainQuestions">0</span>
+                <span class="stat-label">Unsicher</span>
+            </div>
         </div>
 
         <div id="unknownQuestionsList" class="unknown-questions-list">
-            <div class="empty-state">Keine unbekannten Fragen bisher</div>
+            <div class="empty-state">Keine problematischen Fragen bisher 🎉</div>
         </div>
     </div>
 
@@ -637,8 +686,13 @@
 
                 if (response.ok) {
                     displayUnknownQuestions(result.questions);
-                    updateUnknownQuestionsStats(result.total, result.unresolved);
-                    showSuccess(`${result.total} Fragen geladen (${result.unresolved} ungelöst)`);
+                    updateUnknownQuestionsStats(
+                        result.total,
+                        result.unresolved,
+                        result.byType,
+                        result.highPriority
+                    );
+                    showSuccess(`${result.total} Fragen geladen (${result.unresolved} ungelöst, ${result.highPriority} high priority)`);
                 } else {
                     showError(result.error || 'Fehler beim Laden');
                 }
@@ -651,24 +705,43 @@
             const container = document.getElementById('unknownQuestionsList');
 
             if (questions.length === 0) {
-                container.innerHTML = '<div class="empty-state">Keine unbekannten Fragen bisher 🎉</div>';
+                container.innerHTML = '<div class="empty-state">Keine problematischen Fragen bisher 🎉</div>';
                 return;
             }
 
-            container.innerHTML = questions.map(question => `
-                <div class="question-item ${question.resolved ? 'resolved' : ''}">
+            // Sort by priority and timestamp
+            const sortedQuestions = questions.sort((a, b) => {
+                if (a.priority === 'high' && b.priority !== 'high') return -1;
+                if (b.priority === 'high' && a.priority !== 'high') return 1;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedQuestions.map(question => `
+                <div class="question-item ${question.resolved ? 'resolved' : ''} priority-${question.priority || 'medium'}">
                     <div class="question-header">
-                        <span class="question-type ${question.type}">${question.type}</span>
+                        <div>
+                            <span class="question-type ${question.type}">${question.type}</span>
+                            ${question.confidence ? `<span class="confidence-indicator confidence-${question.confidence}">${question.confidence}</span>` : ''}
+                        </div>
                         <span class="question-timestamp">${new Date(question.timestamp).toLocaleString('de-DE')}</span>
                     </div>
                     <div class="question-content">
                         <div class="user-question">👤 ${question.userQuestion}</div>
                         <div class="bot-response">🤖 ${question.botResponse}</div>
+                        ${question.analysis ? `
+                            <div class="question-analysis">
+                                <strong>Analyse:</strong> 
+                                Unsicherheit: ${question.analysis.uncertaintyScore || 0} | 
+                                Länge: ${question.analysis.responseLength} | 
+                                Workshop-Kontext: ${question.analysis.hasWorkshopContext ? '✅' : '❌'}
+                                ${question.analysis.categories?.length ? ` | Kategorien: ${question.analysis.categories.join(', ')}` : ''}
+                            </div>
+                        ` : ''}
                     </div>
                     ${!question.resolved ? `
                         <div class="question-actions">
                             <button class="action-btn resolve-btn" onclick="resolveQuestion('${question.id}')">
-                                ✅ Als gelöst markieren
+                                ✅ Gelöst
                             </button>
                             <button class="action-btn delete-btn" onclick="deleteQuestion('${question.id}')">
                                 🗑️ Löschen
@@ -683,9 +756,11 @@
             `).join('');
         }
 
-        function updateUnknownQuestionsStats(total, unresolved) {
+        function updateUnknownQuestionsStats(total, unresolved, byType = {}, highPriority = 0) {
             document.getElementById('totalQuestions').textContent = total;
             document.getElementById('unresolvedQuestions').textContent = unresolved;
+            document.getElementById('highPriorityQuestions').textContent = highPriority;
+            document.getElementById('uncertainQuestions').textContent = byType.uncertain || 0;
             document.getElementById('unknownQuestionsStats').style.display = 'flex';
         }
 

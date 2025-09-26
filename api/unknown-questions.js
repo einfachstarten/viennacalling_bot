@@ -32,7 +32,13 @@ export default async function handler(req, res) {
       return res.status(200).json({
         questions: sortedQuestions,
         total: sortedQuestions.length,
-        unresolved: sortedQuestions.filter(q => !q.resolved).length
+        unresolved: sortedQuestions.filter(q => !q.resolved).length,
+        byType: {
+          unknown: sortedQuestions.filter(q => q.type === 'unknown').length,
+          uncertain: sortedQuestions.filter(q => q.type === 'uncertain').length,
+          offTopic: sortedQuestions.filter(q => q.type === 'off-topic').length
+        },
+        highPriority: sortedQuestions.filter(q => !q.resolved && q.priority === 'high').length
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });

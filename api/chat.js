@@ -1,17 +1,19 @@
 export default async function handler(req, res) {
   console.log('=== API CALL START ===');
   console.log('Method:', req.method);
-  console.log('Body:', req.body);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body;
-  console.log('Message received:', message);
+  const { messages } = req.body;
+  console.log('Messages received:', messages);
 
-  if (!message || message.length > 500) {
-    return res.status(400).json({ error: 'Invalid message' });
+  // Fallback für alte single-message calls
+  const conversationMessages = messages || [{ role: 'user', content: req.body.message }];
+
+  if (!conversationMessages || conversationMessages.length === 0) {
+    return res.status(400).json({ error: 'Invalid messages' });
   }
 
   // Environment Variable Check
@@ -271,7 +273,13 @@ Antwort: "Des freut mich aber! Immer gern, wertes Herrschaftl! 🇦🇹"
 WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrücken!`;
 
   try {
-    console.log('🔄 Calling OpenAI API...');
+    console.log('🔄 Calling OpenAI with full conversation...');
+
+    // System Prompt + komplette Conversation History
+    const fullMessages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationMessages
+    ];
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -281,10 +289,7 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrück
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
+        messages: fullMessages,
         max_tokens: 200,
         temperature: 0.7
       })
@@ -308,11 +313,7 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Wiener Ausdrück
       message: aiMessage
     });
   } catch (error) {
-    console.error('❌ FULL ERROR:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
+    console.error('❌ FULL ERROR:', error);
 
     return res.status(500).json({
       error: `Na servas! Fehler: ${error.message}`

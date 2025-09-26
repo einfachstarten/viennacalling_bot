@@ -687,6 +687,93 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
     const aiMessage = data.choices[0].message.content;
     console.log('✅ AI Response:', aiMessage);
 
+    // Unknown Question Detection
+    const unknownIndicators = [
+      'weiß ich nicht',
+      'kann ich nicht',
+      'des kenn ich nicht',
+      'hab keine ahnung',
+      'tut mir leid',
+      'sorry',
+      'leider',
+      'kann nicht helfen',
+      'versteh ich nicht',
+      'ist mir nicht bekannt',
+      'kann ihnen nicht'
+    ];
+
+    const isUnknownResponse = unknownIndicators.some(indicator =>
+      aiMessage.toLowerCase().includes(indicator.toLowerCase())
+    );
+
+    // Keyword Detection für Off-Topic Fragen
+    const offTopicKeywords = [
+      'wetter morgen',
+      'restaurant empfehlung',
+      'sehenswürdigkeiten',
+      'hotel',
+      'booking',
+      'flug',
+      'zug',
+      'taxi preis',
+      'einkaufen',
+      'shopping',
+      'nightlife',
+      'bar',
+      'club',
+      'konzert',
+      'theater',
+      'oper',
+      'museum',
+      'corona',
+      'covid',
+      'impfung',
+      'politik',
+      'wahlen'
+    ];
+
+    const userMessage = conversationMessages[conversationMessages.length - 1].content.toLowerCase();
+    const isOffTopic = offTopicKeywords.some(keyword =>
+      userMessage.includes(keyword)
+    );
+
+    // Log Unknown/Off-Topic Questions
+    if (isUnknownResponse || isOffTopic) {
+      console.log('🚨 UNKNOWN QUESTION DETECTED:', {
+        userMessage: conversationMessages[conversationMessages.length - 1].content,
+        botResponse: aiMessage,
+        isUnknownResponse,
+        isOffTopic,
+        timestamp: new Date().toISOString(),
+        conversationLength: conversationMessages.length
+      });
+
+      // Save to Redis for Admin Dashboard
+      try {
+        const { kv } = await import('@vercel/kv');
+        const unknownQuestions = await kv.get('unknown-questions') || { questions: [] };
+
+        unknownQuestions.questions.push({
+          id: Date.now().toString(),
+          userQuestion: conversationMessages[conversationMessages.length - 1].content,
+          botResponse: aiMessage,
+          type: isOffTopic ? 'off-topic' : 'unknown',
+          timestamp: new Date().toISOString(),
+          resolved: false
+        });
+
+        // Keep only last 50 unknown questions
+        if (unknownQuestions.questions.length > 50) {
+          unknownQuestions.questions = unknownQuestions.questions.slice(-50);
+        }
+
+        await kv.set('unknown-questions', unknownQuestions);
+        console.log('✅ Unknown question saved to Redis');
+      } catch (error) {
+        console.error('❌ Failed to save unknown question:', error);
+      }
+    }
+
     return res.status(200).json({
       message: aiMessage
     });

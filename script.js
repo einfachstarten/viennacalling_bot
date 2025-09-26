@@ -102,6 +102,24 @@ async function processUserMessage(message) {
       conversation_length: conversationHistory.length,
       timestamp: new Date().toISOString()
     });
+
+    // Analytics: Track unknown question detection
+    const unknownIndicators = [
+      'weiß ich nicht', 'kann ich nicht', 'des kenn ich nicht',
+      'hab keine ahnung', 'tut mir leid', 'sorry', 'leider'
+    ];
+
+    const isUnknownResponse = unknownIndicators.some(indicator =>
+      response.toLowerCase().includes(indicator.toLowerCase())
+    );
+
+    if (isUnknownResponse) {
+      trackEvent('unknown_question_detected', {
+        user_message: message,
+        bot_response_length: response.length,
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error) {
     if (loadingBubble.parentNode === messagesEl) {
       messagesEl.removeChild(loadingBubble);

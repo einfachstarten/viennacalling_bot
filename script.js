@@ -1,6 +1,9 @@
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('userInput');
 
+// NEUE CHAT HISTORY
+let conversationHistory = [];
+
 let lastRequestTime = 0;
 const REQUEST_COOLDOWN = 2000;
 
@@ -39,13 +42,15 @@ function formatBotMessage(message) {
 
 async function getOpenAIResponse(userMessage) {
   try {
+    console.log('Sending conversation history:', conversationHistory);
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message: userMessage
+        messages: conversationHistory
       })
     });
 
@@ -70,6 +75,14 @@ async function processUserMessage(message) {
   }
   lastRequestTime = now;
 
+  // User Message zur History hinzufügen
+  conversationHistory.push({ role: 'user', content: message });
+
+  if (conversationHistory.length > 20) {
+    // Behalte nur letzten 20 Messages (10 Paare)
+    conversationHistory = conversationHistory.slice(-20);
+  }
+
   const loadingBubble = addMessage('', true, { loading: true });
 
   try {
@@ -77,6 +90,10 @@ async function processUserMessage(message) {
     if (loadingBubble.parentNode === messagesEl) {
       messagesEl.removeChild(loadingBubble);
     }
+
+    // Bot Response zur History hinzufügen
+    conversationHistory.push({ role: 'assistant', content: response });
+
     addMessage(formatBotMessage(response), true, { allowHTML: true });
   } catch (error) {
     if (loadingBubble.parentNode === messagesEl) {

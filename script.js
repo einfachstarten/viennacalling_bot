@@ -32,60 +32,26 @@ function formatBotMessage(message) {
 }
 
 async function getOpenAIResponse(userMessage) {
-  const systemPrompt = `Du bist ein freundlicher Assistent für einen Workshop in Wien vom 29.09-01.10.2025. 
-
-WORKSHOP-DATEN:
-${JSON.stringify(workshopData, null, 2)}
-
-REGELN:
-- Antworte auf Deutsch, freundlich und hilfsbereit
-- Verwende Emojis sparsam aber passend
-- Bei Adressen: immer Maps-Links anbieten
-- Bei Codes/Reservierungen: vollständige Details geben
-- Bei unklaren Fragen: nachfragen
-- Kurze, präzise Antworten (max 3-4 Sätze)
-- "Du" verwenden, nicht "Sie"
-
-Beispiele:
-- "wann essen montag?" → "Montag ab 12:00 Mittagessen bei Viva la Mamma (Dr.-Karl-Lueger-Platz 5). Hier der Maps-Link: [URL] 🍝"
-- "schaff ich um 13 uhr noch das essen?" → "Ja klar! Das Mittagessen bei Viva la Mamma läuft ab 12:00, du schaffst es locker bis 13 Uhr 😊"`;
-
-  if (!OPENAI_API_KEY || OPENAI_API_KEY.includes('REPLACE_WITH')) {
-    throw new Error('OpenAI API Key fehlt.');
-  }
-
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        max_tokens: 200,
-        temperature: 0.7
+        message: userMessage
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      const errorMessage = data?.error?.message || 'OpenAI API Antwort war nicht erfolgreich';
-      throw new Error(errorMessage);
+      throw new Error(data.error || 'Server error');
     }
 
-    if (!data.choices || data.choices.length === 0) {
-      throw new Error('Keine Antwort erhalten.');
-    }
-
-    return data.choices[0].message.content;
+    return data.message;
   } catch (error) {
-    console.error('OpenAI API Error:', error);
+    console.error('API Error:', error);
     throw error;
   }
 }

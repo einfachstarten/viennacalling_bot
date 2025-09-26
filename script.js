@@ -120,19 +120,6 @@ async function processUserMessage(message) {
         timestamp: new Date().toISOString()
       });
     }
-
-    if (
-      response.includes('bin ka Sekretär') ||
-      response.includes('des wird nix') ||
-      response.includes('bin net die Tagesschau') ||
-      response.includes('des is net mein Job')
-    ) {
-      trackEvent('grumpy_waiter_activated', {
-        user_message: message,
-        response_type: 'off_purpose_deflection',
-        timestamp: new Date().toISOString()
-      });
-    }
   } catch (error) {
     if (loadingBubble.parentNode === messagesEl) {
       messagesEl.removeChild(loadingBubble);

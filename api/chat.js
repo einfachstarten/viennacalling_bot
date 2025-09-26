@@ -3,6 +3,12 @@ import { franzExtensions } from './tokens.js';
 export default async function handler(req, res) {
   console.log('=== API CALL START ===');
   console.log('Method:', req.method);
+  console.log('Franz Extensions Status:', {
+    facts: franzExtensions.facts.length,
+    phrases: franzExtensions.phrases.length,
+    behaviors: franzExtensions.behaviors.length,
+    allExtensions: franzExtensions
+  });
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -604,6 +610,10 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       systemPrompt += `- ${behavior.content} (von ${behavior.winner})\n`;
     });
   }
+
+  console.log('=== SYSTEM PROMPT ===');
+  console.log(systemPrompt);
+  console.log('=== END SYSTEM PROMPT ===');
 
   try {
     console.log('🔄 Calling OpenAI with full conversation...');

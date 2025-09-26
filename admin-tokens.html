@@ -107,6 +107,47 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        .franz-knowledge {
+            margin-top: 20px;
+        }
+
+        .knowledge-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #FF1493;
+        }
+
+        .knowledge-section h3 {
+            margin-top: 0;
+            color: #FF1493;
+        }
+
+        .extension-list {
+            margin-top: 10px;
+        }
+
+        .extension-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+            font-family: inherit;
+        }
+
+        .extension-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            color: #999;
+            font-style: italic;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -122,21 +163,44 @@
             <label for="tokenCount">Anzahl Tokens:</label>
             <input type="number" id="tokenCount" value="10" min="1" max="50">
         </div>
-        
+
         <button class="btn" onclick="generateTokens()">Tokens Generieren</button>
         <button class="btn btn-secondary" onclick="loadTokenStatus()">Token Status Laden</button>
-        
+        <button class="btn btn-secondary" onclick="refreshAll()">🔄 Alles Aktualisieren</button>
+
         <div id="generatorOutput" class="generator-output" style="display: none;"></div>
         <div id="status" class="status"></div>
     </div>
-    
+
     <div class="admin-container">
         <h2>📊 Token Status</h2>
         <div id="tokenList" class="token-list">
             Lade Token-Status um aktuelle Tokens zu sehen...
         </div>
     </div>
-    
+
+    <div class="admin-container">
+        <h2>🧠 Franz Extensions (aktuelles Wissen)</h2>
+        <button class="btn btn-secondary" onclick="loadFranzExtensions()">Franz-Wissen laden</button>
+        
+        <div id="franzKnowledge" class="franz-knowledge" style="display: none;">
+            <div class="knowledge-section">
+                <h3>📝 Facts</h3>
+                <div id="factsList" class="extension-list">Keine Facts</div>
+            </div>
+            
+            <div class="knowledge-section">
+                <h3>💬 Phrases</h3>
+                <div id="phrasesList" class="extension-list">Keine Phrases</div>
+            </div>
+            
+            <div class="knowledge-section">
+                <h3>🎭 Behaviors</h3>
+                <div id="behaviorsList" class="extension-list">Keine Behaviors</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         async function generateTokens() {
             const count = document.getElementById('tokenCount').value;
@@ -206,7 +270,7 @@
                 showError('Fehler beim Laden der Tokens');
             }
         }
-        
+
         function displayTokens(tokens) {
             const tokenList = document.getElementById('tokenList');
             
@@ -239,11 +303,59 @@
             status.style.display = 'block';
             setTimeout(() => status.style.display = 'none', 5000);
         }
-        
+
+        async function loadFranzExtensions() {
+            try {
+                const response = await fetch('/api/debug-extensions');
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayFranzKnowledge(result.extensions);
+                    document.getElementById('franzKnowledge').style.display = 'block';
+                    showSuccess(`Franz kennt ${result.totalExtensions} Extensions`);
+                } else {
+                    showError('Fehler beim Laden von Franz-Wissen');
+                }
+            } catch (error) {
+                showError('Fehler beim Laden');
+            }
+        }
+
+        function displayFranzKnowledge(extensions) {
+            displayExtensionType('factsList', extensions.facts || []);
+            displayExtensionType('phrasesList', extensions.phrases || []);
+            displayExtensionType('behaviorsList', extensions.behaviors || []);
+        }
+
+        function displayExtensionType(elementId, items) {
+            const container = document.getElementById(elementId);
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state">Keine Einträge</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="extension-item">
+                    <div><strong>${item.content}</strong></div>
+                    <div class="extension-meta">
+                        Von: ${item.winner} |
+                        Token: ${item.token} |
+                        ${new Date(item.timestamp).toLocaleString('de-DE')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshAll() {
+            loadTokenStatus();
+            loadFranzExtensions();
+        }
+
         // Auto-load on page load
         setTimeout(() => {
             document.getElementById('adminPassword').value = 'workshop2025admin';
-            loadTokenStatus();
+            refreshAll();
         }, 500);
     </script>
 </body>

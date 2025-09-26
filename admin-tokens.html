@@ -182,6 +182,56 @@
             position: relative;
         }
 
+        .off-purpose-list {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .off-purpose-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .off-purpose-item:last-child {
+            border-bottom: none;
+        }
+
+        .off-purpose-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .off-purpose-category {
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #FF1493;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .off-purpose-item .user-request,
+        .off-purpose-item .grumpy-response {
+            margin-top: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .off-purpose-item .grumpy-response {
+            color: #333;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #FF1493;
+        }
+
         .question-item:last-child {
             border-bottom: none;
         }
@@ -395,6 +445,17 @@
 
         <div id="unknownQuestionsList" class="unknown-questions-list">
             <div class="empty-state">Keine problematischen Fragen bisher 🎉</div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <h2>🍺 Off-Purpose Requests</h2>
+        <p style="color: #666;">Versuche Franz für andere Zwecke zu nutzen</p>
+
+        <button class="btn btn-secondary" onclick="loadOffPurposeRequests()">📊 Laden</button>
+
+        <div id="offPurposeList" class="off-purpose-list">
+            <div class="empty-state">Keine Off-Topic Versuche bisher</div>
         </div>
     </div>
 
@@ -701,6 +762,49 @@
             }
         }
 
+        async function loadOffPurposeRequests() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/off-purpose-requests?admin_key=${encodeURIComponent(password)}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayOffPurposeRequests(result.requests || []);
+                    showSuccess(`${result.total || 0} Off-Purpose Anfragen geladen`);
+                } else {
+                    showError(result.error || 'Fehler beim Laden');
+                }
+            } catch (error) {
+                showError('Fehler beim Laden');
+            }
+        }
+
+        function displayOffPurposeRequests(requests) {
+            const container = document.getElementById('offPurposeList');
+
+            if (!requests || requests.length === 0) {
+                container.innerHTML = '<div class="empty-state">Alle brav beim Thema geblieben! 🎉</div>';
+                return;
+            }
+
+            container.innerHTML = requests.slice(-20).reverse().map(req => `
+                <div class="off-purpose-item">
+                    <div class="off-purpose-header">
+                        <span class="off-purpose-category">${req.category}</span>
+                        <span class="timestamp">${new Date(req.timestamp).toLocaleString('de-DE')}</span>
+                    </div>
+                    <div class="user-request">👤 ${req.userMessage}</div>
+                    <div class="grumpy-response">🍺 ${req.response}</div>
+                </div>
+            `).join('');
+        }
+
         function displayUnknownQuestions(questions) {
             const container = document.getElementById('unknownQuestionsList');
 
@@ -852,6 +956,7 @@
             loadTokenStatus();
             loadFranzExtensions();
             loadUnknownQuestions();
+            loadOffPurposeRequests();
         }
 
         document.addEventListener('DOMContentLoaded', () => {

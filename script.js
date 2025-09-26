@@ -28,7 +28,13 @@ function formatBotMessage(message) {
   const safeMessage = typeof message === 'string' ? message : String(message ?? '');
   const temp = document.createElement('div');
   temp.textContent = safeMessage;
-  return temp.innerHTML.replace(/\n/g, '<br>');
+  let html = temp.innerHTML.replace(/\n/g, '<br>');
+
+  // URLs zu klickbaren Links machen
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  html = html.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+
+  return html;
 }
 
 async function getOpenAIResponse(userMessage) {

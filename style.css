@@ -199,6 +199,37 @@ body {
   60%, 100% { content: '...'; }
 }
 
+/* Workshop Password Protection */
+#passwordOverlay input:focus {
+  border-color: var(--or-pink) !important;
+  outline: none;
+}
+
+#passwordOverlay button:hover {
+  background: #e1127f !important;
+  transform: translateY(-1px);
+}
+
+#passwordOverlay button:active {
+  transform: translateY(0);
+}
+
+/* Mobile optimizations for password screen */
+@media (max-width: 768px) {
+  #passwordOverlay > div > div {
+    margin: 20px !important;
+    padding: 20px !important;
+  }
+
+  #passwordOverlay h2 {
+    font-size: 1.3rem;
+  }
+
+  #passwordOverlay input {
+    font-size: 16px !important; /* Prevent iOS zoom */
+  }
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;

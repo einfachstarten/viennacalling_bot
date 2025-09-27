@@ -28,7 +28,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages } = req.body;
+  const { messages, workshopPassword } = req.body || {};
+  const requiredPassword = process.env.WORKSHOP_PASSWORD || 'frieder2025';
+
+  if (!workshopPassword || workshopPassword !== requiredPassword) {
+    return res.status(401).json({
+      error: 'Workshop-Passwort erforderlich',
+      needsPassword: true
+    });
+  }
+
+  console.log('✅ Workshop password validated');
+
   console.log('Messages received:', messages);
 
   const now = new Date();

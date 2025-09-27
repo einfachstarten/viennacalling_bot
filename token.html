@@ -140,6 +140,13 @@
     <script>
         const loadingElement = document.getElementById('loading');
 
+        let workshopPassword = '';
+        try {
+            workshopPassword = localStorage.getItem('workshop_password') || '';
+        } catch (error) {
+            console.warn('Workshop password unavailable in localStorage:', error);
+        }
+
         // Token aus URL extrahieren
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
@@ -181,16 +188,23 @@
         // Form Submit
         document.getElementById('tokenForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const winner_name = document.getElementById('winner_name').value;
             const content = document.getElementById('content').value;
-            
+
             if (!winner_name || !content) return;
-            
+
+            try {
+                workshopPassword = localStorage.getItem('workshop_password') || '';
+            } catch (error) {
+                console.warn('Workshop password unavailable in localStorage during submit:', error);
+                workshopPassword = '';
+            }
+
             const submitBtn = document.querySelector('.submit-btn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Wird gespeichert...';
-            
+
             try {
                 const response = await fetch('/api/tokens', {
                     method: 'POST',
@@ -200,10 +214,11 @@
                     body: JSON.stringify({
                         token,
                         content,
-                        winner_name
+                        winner_name,
+                        workshopPassword
                     })
                 });
-                
+
                 const result = await response.json();
 
                 if (response.ok) {
@@ -219,6 +234,19 @@
                     showSuccess(`🎉 Super! Franz hat "${content}" gelernt. Probiert es aus!`);
                     document.getElementById('tokenForm').style.display = 'none';
                 } else {
+                    if (response.status === 401 && result.needsPassword) {
+                        try {
+                            localStorage.removeItem('workshop_password');
+                        } catch (error) {
+                            console.warn('Failed to clear stored workshop password after 401:', error);
+                        }
+                        workshopPassword = '';
+                        showError('Workshop-Passwort erforderlich. Bitte öffne den Chat, gib das Passwort ein und versuche es erneut.');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Franz Updaten! 🚀';
+                        return;
+                    }
+
                     // Analytics: Track token error
                     if (typeof window.va === 'function') {
                         window.va('track', 'token_error', {

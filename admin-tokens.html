@@ -76,9 +76,55 @@
             border-radius: 4px;
             border-left: 4px solid #FF1493;
         }
+        .copy-btn, .mini-copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .copy-btn:hover, .mini-copy-btn:hover {
+            background: #218838;
+        }
         .used {
             border-left-color: #666;
             opacity: 0.6;
+        }
+        .bulk-actions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .bulk-actions h3 {
+            margin: 0 0 10px 0;
+            color: #28a745;
+        }
+        .token-urls-display {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .url-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .url-item code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 11px;
+            word-break: break-all;
         }
         .status {
             margin-top: 20px;
@@ -598,18 +644,111 @@
 
         function displayTokens(tokens) {
             const tokenList = document.getElementById('tokenList');
-            
+
             if (tokens.length === 0) {
                 tokenList.innerHTML = 'Keine Tokens vorhanden.';
                 return;
             }
-            
+
+            const availableTokens = tokens.filter(token => !token.used);
+
             tokenList.innerHTML = tokens.map(token => `
                 <div class="token-item ${token.used ? 'used' : ''}">
                     <strong>${token.token}</strong>
-                    ${token.used ? `✅ Verwendet von: ${token.winner}` : '⏳ Verfügbar'}
+                    ${token.used ?
+                        `✅ Verwendet von: ${token.winner}` :
+                        `
+                        ⏳ Verfügbar 
+                        <button class="copy-btn" onclick="copyTokenURL('${token.token}')">
+                            📋 URL kopieren
+                        </button>
+                        `
+                    }
                 </div>
             `).join('');
+
+            if (availableTokens.length > 0) {
+                tokenList.innerHTML += `
+                    <div class="bulk-actions">
+                        <h3>📤 Bulk-Verteilung</h3>
+                        <button class="btn" onclick="copyAllTokenURLs()">
+                            📋 Alle verfügbaren URLs kopieren
+                        </button>
+                        <button class="btn btn-secondary" onclick="showTokenURLs()">
+                            👁️ Alle URLs anzeigen
+                        </button>
+                    </div>
+                    <div id="allTokenURLs" style="display: none;" class="token-urls-display"></div>
+                `;
+            }
+        }
+
+        function copyTokenURL(token) {
+            const url = `https://viennacalling-bot.vercel.app/token.html?token=${token}`;
+
+            navigator.clipboard.writeText(url).then(() => {
+                showSuccess(`Token-URL kopiert: ${token.substring(0, 8)}...`);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess(`Token-URL kopiert: ${token.substring(0, 8)}...`);
+            });
+        }
+
+        function copyAllTokenURLs() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (!password) {
+                showError('Passwort erforderlich');
+                return;
+            }
+
+            const tokenElements = document.querySelectorAll('.token-item:not(.used)');
+            const urls = Array.from(tokenElements).map(element => {
+                const tokenText = element.querySelector('strong').textContent;
+                return `https://viennacalling-bot.vercel.app/token.html?token=${tokenText}`;
+            });
+
+            const allURLs = urls.join('\n\n');
+
+            navigator.clipboard.writeText(allURLs).then(() => {
+                showSuccess(`${urls.length} Token-URLs kopiert!`);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = allURLs;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess(`${urls.length} Token-URLs kopiert!`);
+            });
+        }
+
+        function showTokenURLs() {
+            const container = document.getElementById('allTokenURLs');
+            const tokenElements = document.querySelectorAll('.token-item:not(.used)');
+
+            const urls = Array.from(tokenElements).map((element, index) => {
+                const tokenText = element.querySelector('strong').textContent;
+                const url = `https://viennacalling-bot.vercel.app/token.html?token=${tokenText}`;
+                return `<div class="url-item">
+                    <strong>Token ${index + 1}:</strong><br>
+                    <code>${url}</code>
+                    <button class="mini-copy-btn" onclick="copyTokenURL('${tokenText}')">📋</button>
+                </div>`;
+            });
+
+            container.innerHTML = `
+                <h4>📋 Alle verfügbaren Token-URLs:</h4>
+                ${urls.join('')}
+                <p><em>Einfach URLs kopieren und an Workshop-Teilnehmer schicken!</em></p>
+            `;
+
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
         }
         
         function showError(message) {

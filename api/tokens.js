@@ -259,14 +259,19 @@ export default async function handler(req, res) {
     const extensions = await loadExtensions();
 
     const status = Object.entries(tokenStore).map(([token, data]) => ({
-      token: `${token.substring(0, 8)}...`,
+      token: token,
+      shortToken: `${token.substring(0, 8)}...`,
       used: data.used,
-      winner: data.winner
+      winner: data.winner,
+      url: `https://viennacalling-bot.vercel.app/token?token=${token}`
     }));
 
     return res.status(200).json({
       tokens: status,
       extensions: extensions,
+      totalTokens: Object.keys(tokenStore).length,
+      usedTokens: Object.values(tokenStore).filter(t => t.used).length,
+      availableTokens: Object.values(tokenStore).filter(t => !t.used).length,
       debug: {
         redisAvailable: isRedisAvailable(),
         storageType: isRedisAvailable() ? 'Redis' : 'Memory'

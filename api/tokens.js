@@ -95,9 +95,27 @@ export default async function handler(req, res) {
     redisAvailable: isRedisAvailable()
   });
 
+  if (req.method === 'POST' || req.method === 'DELETE') {
+    const requiredPassword = process.env.WORKSHOP_PASSWORD || 'frieder2025';
+    const body = req.body || {};
+
+    if (req.method === 'DELETE' || body.admin_key) {
+      // Admin operations remain protected by admin key validation below
+    } else {
+      const providedPassword = body.workshopPassword;
+
+      if (!providedPassword || providedPassword !== requiredPassword) {
+        return res.status(401).json({
+          error: 'Workshop-Passwort erforderlich für Token-Einlösung',
+          needsPassword: true
+        });
+      }
+    }
+  }
+
   if (req.method === 'GET') {
     const { token } = req.query;
-    
+
     const tokenStore = await loadTokenStore();
 
     if (!token || !tokenStore[token]) {
@@ -116,9 +134,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     console.log('=== TOKEN SUBMISSION START (Redis) ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    const sanitizedBody = { ...(req.body || {}) };
+    if (sanitizedBody.workshopPassword) {
+      sanitizedBody.workshopPassword = '[REDACTED]';
+    }
+    console.log('Request body:', JSON.stringify(sanitizedBody, null, 2));
     console.log('🔍 Redis available:', isRedisAvailable());
-    
+
     const { token, content, winner_name } = req.body;
 
     if (!token || !content || !winner_name) {

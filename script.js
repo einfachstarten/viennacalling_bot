@@ -1,6 +1,208 @@
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('userInput');
 
+// Workshop Password Management - FRONTEND ONLY
+let requiredPassword = 'frieder2025'; // Fallback, can be overridden by API
+let isAuthenticated = localStorage.getItem('workshop_authenticated') === 'true';
+
+// Load password from API (optional backend support)
+fetch('/api/config')
+  .then(response => response.json())
+  .then(data => {
+    if (data && typeof data.workshopPassword === 'string') {
+      requiredPassword = data.workshopPassword;
+    }
+  })
+  .catch(() => {
+    console.log('Using fallback password');
+  });
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', () => {
+  if (!isAuthenticated) {
+    showPasswordPrompt();
+  }
+
+  trackEvent('page_loaded', {
+    user_agent: navigator.userAgent,
+    is_mobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    authenticated: isAuthenticated,
+    timestamp: new Date().toISOString()
+  });
+});
+
+function showPasswordPrompt() {
+  // Disable chat interface
+  const userInput = document.getElementById('userInput');
+  const chatButton = document.querySelector('.chat-input button');
+  if (userInput) userInput.disabled = true;
+  if (chatButton) chatButton.disabled = true;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'passwordOverlay';
+  overlay.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    ">
+      <div style="
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+      ">
+        <h2 style="margin: 0 0 10px 0; color: #000;">🏛️ Wien Workshop</h2>
+        <p style="margin: 0 0 20px 0; color: #666; font-size: 14px;">
+          Kaiser Franz steht nur Workshop-Teilnehmern zur Verfügung
+        </p>
+        
+        <div style="margin-bottom: 20px;">
+          <input 
+            type="password" 
+            id="workshopPasswordInput" 
+            placeholder="Workshop-Passwort eingeben"
+            style="
+              width: 100%;
+              padding: 12px;
+              border: 2px solid #e1e5e9;
+              border-radius: 8px;
+              font-size: 16px;
+              box-sizing: border-box;
+              margin-bottom: 12px;
+            "
+            onkeypress="if(event.key==='Enter') validatePassword()"
+          >
+          
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">
+            <input type="checkbox" id="rememberPassword" checked>
+            Passwort speichern (nur auf diesem Gerät)
+          </label>
+        </div>
+        
+        <button 
+          onclick="validatePassword()"
+          style="
+            background: #FF1493;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+          "
+        >
+          Workshop betreten
+        </button>
+        
+        <div id="passwordError" style="
+          margin-top: 12px;
+          color: #dc3545;
+          font-size: 14px;
+          display: none;
+        "></div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  // Focus password input
+  setTimeout(() => {
+    const passwordInput = document.getElementById('workshopPasswordInput');
+    if (passwordInput) {
+      passwordInput.focus();
+    }
+  }, 100);
+}
+
+function validatePassword() {
+  const input = document.getElementById('workshopPasswordInput');
+  const remember = document.getElementById('rememberPassword');
+  const enteredPassword = input ? input.value.trim() : '';
+  const rememberChecked = remember ? remember.checked : false;
+  
+  if (!enteredPassword) {
+    showPasswordError('Bitte Passwort eingeben');
+    return;
+  }
+  
+  if (enteredPassword !== requiredPassword) {
+    showPasswordError('Falsches Passwort. Nur für Workshop-Teilnehmer!');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+    
+    // Analytics: Track failed login
+    trackEvent('password_failed', {
+      timestamp: new Date().toISOString()
+    });
+    return;
+  }
+  
+  // Success!
+  isAuthenticated = true;
+  
+  if (rememberChecked) {
+    localStorage.setItem('workshop_authenticated', 'true');
+  }
+  
+  // Remove overlay
+  const overlay = document.getElementById('passwordOverlay');
+  if (overlay) {
+    overlay.remove();
+  }
+  
+  // Enable chat interface
+  const userInput = document.getElementById('userInput');
+  const chatButton = document.querySelector('.chat-input button');
+  if (userInput) {
+    userInput.disabled = false;
+    userInput.focus();
+  }
+  if (chatButton) {
+    chatButton.disabled = false;
+  }
+  
+  // Analytics: Track successful login
+  trackEvent('password_success', {
+    remembered: rememberChecked,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Show welcome message
+  addMessage('Willkommen beim Workshop! 👑', true);
+}
+
+function showPasswordError(message) {
+  const errorDiv = document.getElementById('passwordError');
+  if (errorDiv) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+  
+  // Hide after 3 seconds
+  setTimeout(() => {
+    const error = document.getElementById('passwordError');
+    if (error) {
+      error.style.display = 'none';
+    }
+  }, 3000);
+}
+
 // NEUE CHAT HISTORY
 let conversationHistory = [];
 
@@ -142,6 +344,12 @@ function trackEvent(eventName, properties = {}) {
 }
 
 async function sendMessage() {
+  // Check authentication before sending
+  if (!isAuthenticated) {
+    showPasswordPrompt();
+    return;
+  }
+
   const message = inputEl.value.trim();
   if (message === '') return;
 
@@ -165,10 +373,4 @@ async function askQuick(question) {
   await sendMessage();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  trackEvent('page_loaded', {
-    user_agent: navigator.userAgent,
-    is_mobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-    timestamp: new Date().toISOString()
-  });
-});
+

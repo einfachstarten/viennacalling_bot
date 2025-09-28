@@ -8,10 +8,17 @@ const workshopData = {
         { time: "Nachmittag - 17:15", activity: "Workshop", location: "OpenResearch Office, Biberstraße 9, 1010 Wien", maps: "https://maps.google.com/?q=Biberstraße%209,%201010%20Wien" },
         { time: "17:45", activity: "Abfahrt zu Meine Insel (2 Autos)" },
         { time: "18:30-20:30", activity: "Meine Insel 2 & 4 (Pizza)", location: "Treffpunkt: Das Schinakl, Laberlweg 19, 1220 Wien", maps: "https://maps.google.com/?q=Laberlweg%2019,%201220%20Wien" }
+      ],
+      workshop_sessions: [
+        { time: "14:00", activity: "Begrüßung & Ziele", icon: "🏁" },
+        { time: "14:30", activity: "Projektrückblick", icon: "👥" },
+        { time: "15:15", activity: "Kaffeepause", icon: "☕" },
+        { time: "15:30", activity: "Retro", icon: "👍" },
+        { time: "17:15", activity: "Check Out", icon: "🏁" }
       ]
     },
     "dienstag": {
-      date: "30.09.2025", 
+      date: "30.09.2025",
       schedule: [
         { time: "bis 10:00", activity: "Frühstück jeder für sich" },
         { time: "10:00", activity: "Workshop Start", note: "Dieter & Jonas: ÖAMTC Office, alle anderen: OpenResearch Office" },
@@ -19,6 +26,17 @@ const workshopData = {
         { time: "bis 17:45", activity: "Workshop OpenResearch Office" },
         { time: "19:00", activity: "Abfahrt Topgolf (2 Autos)" },
         { time: "19:45-21:45", activity: "Topgolf Wien", location: "Wiener Straße 196, 2345 Brunn am Gebirge", maps: "https://maps.google.com/?q=Wiener%20Stra%C3%9Fe%20196,%202345%20Brunn%20am%20Gebirge" }
+      ],
+      workshop_sessions: [
+        { time: "10:00", activity: "Start & Recap", icon: "🏁" },
+        { time: "10:30", activity: "Vision 2026", icon: "🎯" },
+        { time: "11:30", activity: "Pause", icon: "☕" },
+        { time: "11:40", activity: "Projekt-Roadmap", icon: "📅" },
+        { time: "12:50", activity: "Mittagspause", icon: "🍝" },
+        { time: "14:00", activity: "Aufwände", icon: "👥" },
+        { time: "16:00", activity: "Pause", icon: "☕" },
+        { time: "16:15", activity: "Projekt- und Linienstruktur", icon: "🔄" },
+        { time: "17:45", activity: "Check-out", icon: "🏁" }
       ]
     },
     "mittwoch": {
@@ -28,6 +46,15 @@ const workshopData = {
         { time: "09:00", activity: "Workshop Start OpenResearch Office" },
         { time: "12:30-14:30", activity: "Mittagessen - Meissl & Schadn", location: "Schubertring 10-12, 1010 Wien", maps: "https://maps.google.com/?q=Schubertring%2010%E2%80%9312,%201010%20Wien" },
         { time: "15:00", activity: "Workshop Ende" }
+      ],
+      workshop_sessions: [
+        { time: "09:00", activity: "Start & Recap", icon: "🏁" },
+        { time: "09:30", activity: "Vorbereitende Aufgaben zur Linie", icon: "📋" },
+        { time: "10:45", activity: "Pause", icon: "☕" },
+        { time: "11:00", activity: "Risiken", icon: "☢️" },
+        { time: "12:15", activity: "Mittagspause", icon: "🍝" },
+        { time: "13:15", activity: "Planung Q4 25", icon: "📅" },
+        { time: "15:00", activity: "Workshop Ende", icon: "🏁" }
       ]
     }
   },

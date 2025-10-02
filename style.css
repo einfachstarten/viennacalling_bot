@@ -470,7 +470,7 @@ body {
   z-index: 100;
 }
 
-/* Workshop Password Protection */
+/* Demo Password Protection */
 #passwordOverlay input:focus {
   border-color: #FF1493 !important;
   outline: none;

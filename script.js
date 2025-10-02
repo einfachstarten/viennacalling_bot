@@ -3,9 +3,15 @@ const inputEl = document.getElementById('userInput');
 const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 const USER_COLOR = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
 
-// Workshop Password Management - FRONTEND ONLY
-let requiredPassword = 'frieder2025'; // Fallback, can be overridden by API
-let isAuthenticated = localStorage.getItem('workshop_authenticated') === 'true';
+// Demo Password Management - FRONTEND ONLY
+let requiredPassword = 'alex2025'; // Fallback, can be overridden by API
+let isAuthenticated = localStorage.getItem('alex_demo_authenticated') === 'true';
+
+if (!isAuthenticated && localStorage.getItem('workshop_authenticated') === 'true') {
+  localStorage.removeItem('workshop_authenticated');
+  localStorage.setItem('alex_demo_authenticated', 'true');
+  isAuthenticated = true;
+}
 
 // Load password from API (optional backend support)
 fetch('/api/config')
@@ -64,16 +70,16 @@ function showPasswordPrompt() {
         width: 90%;
         text-align: center;
       ">
-        <h2 style="margin: 0 0 10px 0; color: #000;">🏛️ Wien Workshop</h2>
+        <h2 style="margin: 0 0 10px 0; color: #000;">🔐 Demo-Zugang</h2>
         <p style="margin: 0 0 20px 0; color: #666; font-size: 14px;">
-          Kaiser Franz steht nur Workshop-Teilnehmern zur Verfügung
+          ALEX steht aktuell nur Demo-Teilnehmerinnen und -Teilnehmern zur Verfügung
         </p>
         
         <div style="margin-bottom: 20px;">
           <input 
             type="password" 
             id="workshopPasswordInput" 
-            placeholder="Workshop-Passwort eingeben"
+            placeholder="Demo-Passwort eingeben"
             style="
               width: 100%;
               padding: 12px;
@@ -88,7 +94,7 @@ function showPasswordPrompt() {
           
           <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">
             <input type="checkbox" id="rememberPassword" checked>
-            Passwort speichern (nur auf diesem Gerät)
+            Eingeloggt bleiben (nur für Demo)
           </label>
         </div>
         
@@ -106,7 +112,7 @@ function showPasswordPrompt() {
             width: 100%;
           "
         >
-          Workshop betreten
+          Demo starten
         </button>
         
         <div id="passwordError" style="
@@ -142,7 +148,7 @@ function validatePassword() {
   }
   
   if (enteredPassword !== requiredPassword) {
-    showPasswordError('Falsches Passwort. Nur für Workshop-Teilnehmer!');
+    showPasswordError('Falsches Passwort. Nur für Demo-Teilnehmer!');
     if (input) {
       input.value = '';
       input.focus();
@@ -159,7 +165,7 @@ function validatePassword() {
   isAuthenticated = true;
   
   if (rememberChecked) {
-    localStorage.setItem('workshop_authenticated', 'true');
+    localStorage.setItem('alex_demo_authenticated', 'true');
   }
   
   // Remove overlay
@@ -186,7 +192,7 @@ function validatePassword() {
   });
   
   // Show welcome message
-  addMessage('Willkommen beim Workshop! 👑', true);
+  addMessage('Willkommen zur Demo! 🚀', true);
 }
 
 function showPasswordError(message) {

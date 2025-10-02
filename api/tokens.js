@@ -29,7 +29,7 @@ async function loadExtensions() {
   }
   
   try {
-    const extensions = await kv.get('franz-extensions');
+    const extensions = await kv.get('alex-extensions');
     console.log('📦 Loaded from Redis:', extensions);
     return extensions || { extensions: [] };
   } catch (error) {
@@ -46,7 +46,7 @@ async function saveExtensions(extensions) {
   }
   
   try {
-    await kv.set('franz-extensions', extensions);
+    await kv.set('alex-extensions', extensions);
     console.log('📦 Saved to Redis:', extensions);
   } catch (error) {
     console.error('❌ Redis save failed, saving to memory:', error.message);
@@ -181,7 +181,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'Franz hat neues Wissen gelernt!',
+      message: 'ALEX hat neues Wissen gelernt!',
       winner: winner_name,
       debug: {
         extensions: allExtensions,
@@ -228,7 +228,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         success: true,
-        message: 'Franz-Wissen wurde zurückgesetzt'
+        message: 'ALEX-Wissen wurde zurückgesetzt'
       });
     }
 

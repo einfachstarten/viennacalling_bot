@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="Kaiser Franz - Ihr persönlicher Workshop-Assistent für Wien. Termine, Orte und alles rund um den Workshop.">
-  <title>Wien Workshop Bot - Kaiser Franz</title>
+  <meta name="description" content="ALEX - Dein adaptiver KI-Assistent für Lernen und Demonstrationen. Schau zu wie KI durch Feedback verändert wird.">
+  <title>ALEX - Adaptive Learning EXperiment</title>
   
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="/manifest.json">
@@ -16,7 +16,7 @@
   <!-- iOS PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Franz Bot">
+  <meta name="apple-mobile-web-app-title" content="ALEX">
   <link rel="apple-touch-icon" href="/ios/180.png">
   <link rel="apple-touch-icon" sizes="152x152" href="/ios/152.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/ios/180.png">
@@ -41,8 +41,8 @@
   <div id="installBanner" class="install-banner" style="display: none;">
     <div class="install-content">
       <div class="install-text">
-        <strong>Franz als App installieren</strong>
-        <p>Fügen Sie Franz zu Ihrem Homescreen hinzu für schnellen Zugriff!</p>
+        <strong>ALEX als App installieren</strong>
+        <p>Füge ALEX zu deinem Homescreen hinzu für schnellen Zugriff!</p>
       </div>
       <div class="install-actions">
         <button id="installBtn" class="install-btn">Installieren</button>
@@ -54,7 +54,7 @@
   <div class="chat-container" role="main">
     <header class="chat-header">
       <div class="header-content">
-        <span>Kaiser Franz, zu Diensten.</span>
+        <span>ALEX - ready to help! 🤖</span>
         <div class="header-actions">
           <a href="/alex-brain.html" style="color: white; text-decoration: none; font-size: 0.9rem;">
             🧠 Brain Viewer
@@ -67,13 +67,13 @@
     </header>
     
     <section class="chat-messages" id="messages" aria-live="polite">
-      <div class="message bot-message">Gestatten, Franz hier! Fragen Sie mich allergnädigst über den Workshop (Zeit, Ort, Speisen, etc.)</div>
+      <div class="message bot-message">Hi! ALEX hier 👋 Frag mich gerne alles was dich interessiert - Wissenschaft, Technik, Alltag, whatever!</div>
     </section>
     
     <div class="chat-input">
       <form onsubmit="event.preventDefault(); sendMessage();">
         <label class="visually-hidden" for="userInput">Nachricht eingeben</label>
-        <input id="userInput" type="text" autocomplete="off" placeholder="z.B. wann essen montag?">
+        <input id="userInput" type="text" autocomplete="off" placeholder="z.B. Wie funktioniert KI?">
         <button type="submit" aria-label="Nachricht senden">➤</button>
       </form>
     </div>

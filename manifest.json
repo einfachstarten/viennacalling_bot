@@ -1,7 +1,7 @@
 {
-  "name": "Wien Workshop Bot - Kaiser Franz",
-  "short_name": "Franz Bot",
-  "description": "Dein persönlicher Workshop-Assistent für Wien. Kaiser Franz hilft bei Terminen, Orten und allem rund um den Workshop.",
+  "name": "ALEX - Adaptive Learning EXperiment",
+  "short_name": "ALEX",
+  "description": "Dein adaptiver KI-Assistent für Lernen und Demonstrationen. Erlebe wie KI durch Feedback verändert wird.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -10,7 +10,7 @@
   "scope": "/",
   "lang": "de",
   "dir": "ltr",
-  "categories": ["productivity", "travel", "utilities"],
+  "categories": ["productivity", "education", "utilities"],
   "icons": [
     { "src": "/android/android-launchericon-512-512.png", "sizes": "512x512" },
     { "src": "/android/android-launchericon-192-192.png", "sizes": "192x192" },
@@ -47,19 +47,19 @@
   ],
   "shortcuts": [
     {
-      "name": "Programm heute",
-      "short_name": "Heute",
-      "description": "Was steht heute auf dem Programm?",
-      "url": "/?quick=heute",
+      "name": "Frag ALEX",
+      "short_name": "Chat",
+      "description": "Stelle ALEX eine Frage",
+      "url": "/?quick=chat",
       "icons": [
         { "src": "/android/android-launchericon-96-96.png", "sizes": "96x96" }
       ]
     },
     {
-      "name": "Nächster Termin",
-      "short_name": "Termin",
-      "description": "Wann ist der nächste Termin?",
-      "url": "/?quick=termin",
+      "name": "Brain Viewer",
+      "short_name": "Brain",
+      "description": "Sieh wie ALEX denkt",
+      "url": "/alex-brain.html",
       "icons": [
         { "src": "/android/android-launchericon-96-96.png", "sizes": "96x96" }
       ]

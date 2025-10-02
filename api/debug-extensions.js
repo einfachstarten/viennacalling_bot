@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     if (isRedisAvailable()) {
       try {
-        extensions = await kv.get('franz-extensions') || { extensions: [] };
+        extensions = await kv.get('alex-extensions') || { extensions: [] };
         console.log('📦 Loaded from Redis:', extensions);
       } catch (error) {
         console.error('❌ Redis error:', error);

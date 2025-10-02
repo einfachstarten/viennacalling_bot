@@ -1,6 +1,6 @@
-const CACHE_NAME = 'franz-workshop-v1.2';
-const STATIC_CACHE = 'franz-static-v1.2';
-const API_CACHE = 'franz-api-v1.2';
+const CACHE_NAME = 'alex-v1.0';
+const STATIC_CACHE = 'alex-static-v1.0';
+const API_CACHE = 'alex-api-v1.0';
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -126,7 +126,7 @@ async function handleApiRequest(request) {
     // Return offline response for chat API
     if (request.url.includes('/api/chat')) {
       return new Response(JSON.stringify({
-        message: "Na servas! Bin gerade offline, aber sobald wieder Internet da ist, helfe ich gerne weiter! 📱"
+        message: "Hey! Bin gerade offline, aber sobald wieder Internet da ist, helfe ich gerne weiter! 📱"
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
@@ -156,7 +156,7 @@ self.addEventListener('push', event => {
   console.log('Service Worker: Push received');
   
   const options = {
-    body: 'Franz hat neue Workshop-Infos für Sie!',
+    body: 'ALEX hat neue Updates für dich!',
     icon: '/android/android-launchericon-192-192.png',
     badge: '/android/android-launchericon-72-72.png',
     vibrate: [100, 50, 100],
@@ -167,7 +167,7 @@ self.addEventListener('push', event => {
     actions: [
       {
         action: 'explore',
-        title: 'Franz öffnen',
+        title: 'ALEX öffnen',
         icon: '/android/android-launchericon-192-192.png'
       },
       {
@@ -176,8 +176,8 @@ self.addEventListener('push', event => {
       }
     ]
   };
-  
+
   event.waitUntil(
-    self.registration.showNotification('Workshop Update', options)
+    self.registration.showNotification('ALEX Update', options)
   );
 });

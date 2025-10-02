@@ -184,29 +184,571 @@
             color: #8b949e;
         }
         
+        /* ===== TEEN-FRIENDLY ACTIVITY FEED STYLES ===== */
         .activity-feed {
-            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+            border-radius: 16px;
             padding: 20px;
-            max-height: 500px;
+            max-height: 600px;
             overflow-y: auto;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-family: 'SF Pro Display', system-ui, -apple-system, sans-serif;
             border: 1px solid #30363d;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
         }
 
         .activity-feed::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         .activity-feed::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
+            background: transparent;
         }
 
         .activity-feed::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #58a6ff, #1f6feb);
-            border-radius: 4px;
+            background: linear-gradient(180deg, #ff6b6b, #4ecdc4);
+            border-radius: 6px;
+        }
+
+        .empty-state-teen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .waiting-animation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .bounce-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bounce-dots span {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            animation: bounce 1.5s infinite;
+        }
+
+        .bounce-dots span:nth-child(2) { animation-delay: 0.3s; }
+        .bounce-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+        .waiting-text {
+            color: #c9d1d9;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* ===== TEEN CONVERSATION CARDS ===== */
+        .teen-conversation-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .teen-conversation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #f39c12);
+            animation: shimmer 3s infinite;
+        }
+
+        .teen-conversation-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(88, 166, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        .conversation-header-teen {
+            margin-bottom: 16px;
+        }
+
+        .time-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: rgba(13, 17, 23, 0.6);
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .start-time, .end-time {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #c9d1d9;
+            padding: 4px 8px;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 6px;
+        }
+
+        .processing-flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flow-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .flow-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: flowPulse 1.5s infinite;
+        }
+
+        .processing-flow.super-fast .flow-dots span {
+            background: #7ee787;
+            animation-duration: 0.8s;
+        }
+
+        .processing-flow.fast .flow-dots span {
+            background: #58a6ff;
+            animation-duration: 1.2s;
+        }
+
+        .processing-flow.normal .flow-dots span {
+            background: #f2cc60;
+            animation-duration: 1.5s;
+        }
+
+        .processing-flow.slow .flow-dots span {
+            background: #f85149;
+            animation-duration: 2s;
+        }
+
+        .flow-dots span:nth-child(2) { animation-delay: 0.3s; }
+        .flow-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+        .processing-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(88, 166, 255, 0.15);
+            color: #58a6ff;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+
+        /* ===== CHAT BUBBLES ===== */
+        .chat-bubbles-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .message-card {
+            flex: 1;
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(15, 23, 42, 0.8));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alex-message {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(15, 23, 42, 0.8));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-left: 4px solid #22c55e;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .avatar {
+            font-size: 1.2rem;
+        }
+
+        .sender-label {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #c9d1d9;
+        }
+
+        .char-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #000;
+            margin-left: auto;
+        }
+
+        .message-content {
+            color: #e6edf3;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        /* ===== FLOW ARROW ===== */
+        .message-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+            position: relative;
+        }
+
+        .flow-line {
+            width: 40px;
+            height: 3px;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-flow.super-fast .flow-line {
+            background: linear-gradient(90deg, #7ee787, #56d364);
+            animation: superFastPulse 0.8s infinite;
+        }
+
+        .message-flow.fast .flow-line {
+            background: linear-gradient(90deg, #58a6ff, #1f6feb);
+            animation: fastPulse 1.2s infinite;
+        }
+
+        .message-flow.normal .flow-line {
+            background: linear-gradient(90deg, #f2cc60, #d29922);
+            animation: normalPulse 1.5s infinite;
+        }
+
+        .message-flow.slow .flow-line {
+            background: linear-gradient(90deg, #f85149, #da3633);
+            animation: slowPulse 2s infinite;
+        }
+
+        .flow-arrow {
+            color: #58a6ff;
+            font-size: 1rem;
+            margin: 4px 0;
+            filter: drop-shadow(0 0 4px rgba(88, 166, 255, 0.5));
+        }
+
+        .flow-time {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #8b949e;
+            background: rgba(13, 17, 23, 0.8);
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        .flow-spark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: sparkle 2s infinite;
+        }
+
+        /* ===== PERFORMANCE FOOTER ===== */
+        .performance-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(48, 54, 61, 0.5);
+        }
+
+        .speed-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .speed-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(48, 54, 61, 0.8);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .speed-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .speed-indicator.super-fast .speed-fill {
+            background: linear-gradient(90deg, #7ee787, #56d364);
+        }
+
+        .speed-indicator.fast .speed-fill {
+            background: linear-gradient(90deg, #58a6ff, #1f6feb);
+        }
+
+        .speed-indicator.normal .speed-fill {
+            background: linear-gradient(90deg, #f2cc60, #d29922);
+        }
+
+        .speed-indicator.slow .speed-fill {
+            background: linear-gradient(90deg, #f85149, #da3633);
+        }
+
+        .speed-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        .conversation-stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .stat-item {
+            font-size: 0.75rem;
+            color: #8b949e;
+            padding: 4px 8px;
+            background: rgba(13, 17, 23, 0.6);
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        /* ===== THINKING CARD ===== */
+        .thinking-card-teen {
+            background: linear-gradient(135deg, rgba(248, 81, 73, 0.2), rgba(15, 23, 42, 0.9));
+            border: 2px solid #f85149;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            animation: thinkingPulse 2s infinite;
+            backdrop-filter: blur(8px);
+        }
+
+        .thinking-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .thinking-dots-big {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dots-big span {
+            width: 10px;
+            height: 10px;
+            background: #f85149;
+            border-radius: 50%;
+            animation: bigBounce 1.4s infinite;
+        }
+
+        .thinking-dots-big span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots-big span:nth-child(3) { animation-delay: 0.4s; }
+
+        .thinking-text {
+            color: #f85149;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .thinking-timer {
+            margin-left: auto;
+            color: #8b949e;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: rgba(13, 17, 23, 0.6);
+            border-radius: 6px;
+        }
+
+        .thinking-question {
+            color: #c9d1d9;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        /* ===== TOKEN & ERROR CARDS ===== */
+        .token-card-teen {
+            background: linear-gradient(135deg, rgba(210, 153, 34, 0.2), rgba(15, 23, 42, 0.9));
+            border: 2px solid #d29922;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(8px);
+        }
+
+        .token-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .token-icon {
+            font-size: 1.2rem;
+        }
+
+        .token-text {
+            color: #f2cc60;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .token-time {
+            margin-left: auto;
+            color: #8b949e;
+            font-size: 0.8rem;
+        }
+
+        .token-content {
+            color: #c9d1d9;
+            font-size: 0.9rem;
+        }
+
+        .error-card-teen {
+            background: linear-gradient(135deg, rgba(218, 54, 51, 0.2), rgba(15, 23, 42, 0.9));
+            border: 2px solid #da3633;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(8px);
+        }
+
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .error-icon {
+            font-size: 1.2rem;
+        }
+
+        .error-text {
+            color: #f85149;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .error-time {
+            margin-left: auto;
+            color: #8b949e;
+            font-size: 0.8rem;
+        }
+
+        .error-details {
+            color: #c9d1d9;
+            font-size: 0.85rem;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-12px); }
+        }
+
+        @keyframes flowPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes superFastPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        @keyframes fastPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes normalPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes slowPulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; transform: scale(0.95); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes thinkingPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(248, 81, 73, 0); }
+        }
+
+        @keyframes bigBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .chat-bubbles-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .message-flow {
+                transform: rotate(90deg);
+                min-width: auto;
+                min-height: 40px;
+            }
+
+            .performance-footer {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .conversation-stats {
+                justify-content: center;
+            }
         }
 
         .empty-state {
@@ -214,436 +756,11 @@
             color: #8b949e;
             font-style: italic;
             padding: 40px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
         }
 
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #58a6ff;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        /* ===== CONVERSATION GROUP STYLING ===== */
-        .conversation-group {
-            background: rgba(22, 27, 34, 0.8);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #30363d;
-            position: relative;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-        }
-
-        .conversation-group:hover {
-            border-color: #58a6ff;
-            box-shadow: 0 0 20px rgba(88, 166, 255, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .conversation-header {
-            margin-bottom: 12px;
-        }
-
-        .conversation-timing {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: #8b949e;
-        }
-
-        .start-time, .end-time {
-            font-weight: 600;
-            color: #c9d1d9;
-        }
-
-        .processing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 12px;
-            border-radius: 16px;
-            background: rgba(13, 17, 23, 0.8);
-            border: 1px solid #30363d;
-        }
-
-        .processing-indicator.fast {
-            border-color: #238636;
-            background: rgba(35, 134, 54, 0.1);
-        }
-
-        .processing-indicator.medium {
-            border-color: #d29922;
-            background: rgba(210, 153, 34, 0.1);
-        }
-
-        .processing-indicator.slow {
-            border-color: #da3633;
-            background: rgba(218, 54, 51, 0.1);
-        }
-
-        .processing-dots {
-            display: flex;
-            gap: 2px;
-        }
-
-        .processing-dots span {
-            width: 4px;
-            height: 4px;
-            background: #58a6ff;
-            border-radius: 50%;
-            animation: processingPulse 1.5s infinite;
-        }
-
-        .processing-dots span:nth-child(2) { animation-delay: 0.3s; }
-        .processing-dots span:nth-child(3) { animation-delay: 0.6s; }
-
-        .processing-time {
-            font-weight: 600;
-            color: #c9d1d9;
-        }
-
-        /* ===== MESSAGE BUBBLES ===== */
-        .conversation-flow {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 16px 0;
-        }
-
-        .message-bubble {
-            flex: 1;
-            background: rgba(13, 17, 23, 0.6);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #30363d;
-            backdrop-filter: blur(4px);
-        }
-
-        .user-bubble {
-            border-left: 3px solid #1f6feb;
-            background: linear-gradient(135deg, rgba(31, 111, 235, 0.1), rgba(13, 17, 23, 0.6));
-        }
-
-        .alex-bubble {
-            border-left: 3px solid #238636;
-            background: linear-gradient(135deg, rgba(35, 134, 54, 0.1), rgba(13, 17, 23, 0.6));
-        }
-
-        .bubble-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.75rem;
-        }
-
-        .bubble-icon {
-            font-size: 1rem;
-        }
-
-        .bubble-label {
-            font-weight: 600;
-            color: #c9d1d9;
-        }
-
-        .message-length {
-            color: #8b949e;
-            background: rgba(255,255,255,0.05);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-        }
-
-        .bubble-content {
-            color: #c9d1d9;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        /* ===== FLOW ARROW ===== */
-        .flow-arrow {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 60px;
-            position: relative;
-        }
-
-        .arrow-line {
-            width: 30px;
-            height: 2px;
-            background: linear-gradient(90deg, #30363d, #58a6ff, #30363d);
-            position: relative;
-            animation: flowPulse 2s infinite;
-        }
-
-        .flow-arrow.fast .arrow-line {
-            background: linear-gradient(90deg, #238636, #7ee787, #238636);
-            animation-duration: 1s;
-        }
-
-        .flow-arrow.slow .arrow-line {
-            background: linear-gradient(90deg, #da3633, #f85149, #da3633);
-            animation-duration: 3s;
-        }
-
-        .arrow-head {
-            color: #58a6ff;
-            font-size: 0.8rem;
-            margin-top: 2px;
-        }
-
-        .flow-timing {
-            font-size: 0.7rem;
-            color: #8b949e;
-            margin-top: 4px;
-            font-weight: 600;
-        }
-
-        /* ===== PERFORMANCE FOOTER ===== */
-        .conversation-footer {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #21262d;
-        }
-
-        .performance-indicator {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.75rem;
-        }
-
-        .perf-label {
-            color: #8b949e;
-            font-weight: 600;
-        }
-
-        .perf-bar {
-            flex: 1;
-            height: 6px;
-            background: #21262d;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .perf-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .perf-fill.fast {
-            background: linear-gradient(90deg, #238636, #7ee787);
-        }
-
-        .perf-fill.medium {
-            background: linear-gradient(90deg, #d29922, #f2cc60);
-        }
-
-        .perf-fill.slow {
-            background: linear-gradient(90deg, #da3633, #f85149);
-        }
-
-        .perf-text {
-            font-weight: 600;
-            min-width: 80px;
-        }
-
-        .perf-text.fast { color: #7ee787; }
-        .perf-text.medium { color: #f2cc60; }
-        .perf-text.slow { color: #f85149; }
-
-        /* ===== ACTIVE REQUEST STYLING ===== */
-        .active-request-indicator {
-            background: linear-gradient(135deg, rgba(248, 81, 73, 0.15), rgba(13, 17, 23, 0.8));
-            border: 2px solid #f85149;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            animation: activeRequestPulse 2s infinite;
-        }
-
-        .thinking-animation {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .thinking-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .thinking-dots span {
-            width: 8px;
-            height: 8px;
-            background: #f85149;
-            border-radius: 50%;
-            animation: thinkingBounce 1.4s infinite;
-        }
-
-        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        .thinking-text {
-            color: #f85149;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .active-request-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-        }
-
-        .request-time {
-            color: #8b949e;
-            font-weight: 600;
-        }
-
-        .request-message {
-            color: #c9d1d9;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* ===== SINGLE ACTIVITY STYLING ===== */
-        .single-activity {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border-left: 3px solid #30363d;
-            background: rgba(22, 27, 34, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .single-activity:hover {
-            background: rgba(22, 27, 34, 0.8);
-            transform: translateX(4px);
-        }
-
-        .single-activity.error {
-            border-left-color: #da3633;
-            background: linear-gradient(135deg, rgba(218, 54, 51, 0.1), rgba(22, 27, 34, 0.4));
-        }
-
-        .single-activity.token {
-            border-left-color: #d29922;
-            background: linear-gradient(135deg, rgba(210, 153, 34, 0.1), rgba(22, 27, 34, 0.4));
-        }
-
-        .single-activity.system {
-            border-left-color: #8b949e;
-            background: linear-gradient(135deg, rgba(139, 148, 158, 0.1), rgba(22, 27, 34, 0.4));
-        }
-
-        .activity-icon {
-            font-size: 1.2rem;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .activity-details {
-            flex: 1;
-        }
-
-        .activity-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .activity-label {
-            font-weight: 600;
-            color: #c9d1d9;
-            font-size: 0.8rem;
-        }
-
-        .activity-time {
-            color: #8b949e;
-            font-size: 0.75rem;
-        }
-
-        .activity-message {
-            color: #8b949e;
-            font-size: 0.75rem;
-            line-height: 1.3;
-        }
-
-        /* ===== ANIMATIONS ===== */
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-        }
-
-        @keyframes processingPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        @keyframes flowPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        @keyframes activeRequestPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.3); }
-            50% { box-shadow: 0 0 0 8px rgba(248, 81, 73, 0); }
-        }
-
-        @keyframes thinkingBounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-8px); }
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 768px) {
-            .conversation-flow {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .flow-arrow {
-                transform: rotate(90deg);
-                min-width: auto;
-                min-height: 30px;
-            }
-
-            .conversation-timing {
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-
-            .performance-indicator {
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-
-            .active-request-details {
-                flex-direction: column;
-                gap: 4px;
-                text-align: center;
-            }
         }
 
         .update-info {
@@ -955,9 +1072,13 @@
 
             if (!activities || activities.length === 0) {
                 feed.innerHTML = `
-                    <div class="empty-state">
-                        <div class="pulse-dot"></div>
-                        <span>Warte auf ALEX Aktivität...</span>
+                    <div class="empty-state-teen">
+                        <div class="waiting-animation">
+                            <div class="bounce-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="waiting-text">Warte auf ALEX Chat-Action... 💬</div>
+                        </div>
                     </div>
                 `;
                 return;
@@ -966,11 +1087,20 @@
             // Gruppiere Request/Response Paare
             const groupedActivities = groupRequestResponse(activities);
 
+            console.log('🎨 RENDERING:', groupedActivities.length, 'items');
+
             feed.innerHTML = groupedActivities.map(group => {
-                if (group.type === 'conversation') {
-                    return renderConversation(group);
-                } else {
-                    return renderSingleActivity(group);
+                switch(group.type) {
+                    case 'conversation':
+                        return renderTeenConversation(group);
+                    case 'active_thinking':
+                        return renderActiveThinking(group);
+                    case 'error':
+                        return renderError(group);
+                    case 'token_redeemed':
+                        return renderTokenRedeemed(group);
+                    default:
+                        return '';
                 }
             }).join('');
         }
@@ -979,209 +1109,256 @@
             const grouped = [];
             const processed = new Set();
 
-            console.log('🔍 DEBUG: Grouping activities:', activities.length);
+            console.log('🔍 PAIRING DEBUG: Total activities:', activities.length);
 
-            const sortedActivities = activities
-                .slice()
-                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            const sortedActivities = activities.sort((a, b) =>
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
 
-            sortedActivities.forEach(activity => {
+            sortedActivities.forEach((activity, index) => {
                 if (processed.has(activity.id)) return;
 
-                console.log('🔍 Processing activity:', {
+                console.log('🔍 Processing:', {
                     type: activity.type,
-                    requestId: activity.requestId?.substring(0, 15),
-                    message: activity.data?.message?.substring(0, 30)
+                    requestId: activity.requestId?.substring(0, 10),
+                    message: activity.message?.substring(0, 30)
                 });
 
                 if (activity.type === 'request_start') {
                     const matchingResponse = sortedActivities.find(resp =>
                         resp.type === 'request_end' &&
-                        !processed.has(resp.id) &&
-                        (
-                            (activity.requestId && resp.requestId && resp.requestId === activity.requestId) ||
-                            (!activity.requestId && !resp.requestId && resp.sessionId === activity.sessionId)
-                        )
+                        resp.requestId === activity.requestId &&
+                        resp.requestId &&
+                        !processed.has(resp.id)
                     );
 
                     if (matchingResponse) {
-                        console.log('✅ Found matching pair:', {
-                            requestId: activity.requestId?.substring(0, 15),
-                            request: activity.data?.message?.substring(0, 30),
-                            response: matchingResponse.data?.response?.substring(0, 30)
+                        console.log('✅ PERFECT PAIR FOUND:', {
+                            requestId: activity.requestId?.substring(0, 10),
+                            question: activity.message?.substring(0, 30),
+                            answer: matchingResponse.response?.substring(0, 30),
+                            processingTime: matchingResponse.processingTime
                         });
 
                         grouped.push({
                             type: 'conversation',
+                            id: `conv_${activity.requestId}`,
                             request: activity,
                             response: matchingResponse,
-                            responseTime:
-                                matchingResponse.data?.processingTime ||
-                                calculateResponseTime(activity.timestamp, matchingResponse.timestamp)
+                            responseTime: matchingResponse.processingTime ||
+                                calculateResponseTime(activity.timestamp, matchingResponse.timestamp),
+                            timestamp: activity.timestamp
                         });
 
                         processed.add(activity.id);
                         processed.add(matchingResponse.id);
+
                     } else {
-                        console.log('⏳ Active request (no response yet):', {
-                            requestId: activity.requestId?.substring(0, 15),
-                            message: activity.data?.message?.substring(0, 30)
+                        console.log('⏳ ACTIVE REQUEST (still thinking):', {
+                            requestId: activity.requestId?.substring(0, 10),
+                            message: activity.message?.substring(0, 30),
+                            age: Math.round((Date.now() - new Date(activity.timestamp).getTime()) / 1000) + 's'
                         });
 
                         grouped.push({
-                            type: 'active_request',
-                            activity: activity
+                            type: 'active_thinking',
+                            id: `thinking_${activity.requestId}`,
+                            activity: activity,
+                            timestamp: activity.timestamp
                         });
                         processed.add(activity.id);
                     }
+
                 } else if (activity.type === 'request_error') {
                     grouped.push({
-                        type: 'single',
-                        activity: activity
+                        type: 'error',
+                        id: `error_${activity.id}`,
+                        activity: activity,
+                        timestamp: activity.timestamp
                     });
                     processed.add(activity.id);
-                } else if (!processed.has(activity.id)) {
+
+                } else if (activity.type === 'token_used') {
                     grouped.push({
-                        type: 'single',
-                        activity: activity
+                        type: 'token_redeemed',
+                        id: `token_${activity.id}`,
+                        activity: activity,
+                        timestamp: activity.timestamp
                     });
                     processed.add(activity.id);
                 }
             });
 
-            console.log('🔍 Grouping result:', {
-                totalActivities: activities.length,
-                groupedItems: grouped.length,
+            console.log('🎯 GROUPING RESULT:', {
+                total: activities.length,
                 conversations: grouped.filter(g => g.type === 'conversation').length,
-                activeRequests: grouped.filter(g => g.type === 'active_request').length
+                thinking: grouped.filter(g => g.type === 'active_thinking').length,
+                errors: grouped.filter(g => g.type === 'error').length,
+                tokens: grouped.filter(g => g.type === 'token_redeemed').length
             });
 
-            return grouped;
+            return grouped.sort((a, b) =>
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
         }
 
-        function renderConversation(group) {
-            const requestTime = new Date(group.request.timestamp).toLocaleTimeString('de-DE');
-            const responseTime = new Date(group.response.timestamp).toLocaleTimeString('de-DE');
-            const processingTime = Number.isFinite(group.responseTime) ? group.responseTime : 0;
+        function renderTeenConversation(group) {
+            const requestTime = new Date(group.request.timestamp).toLocaleTimeString('de-DE', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
 
-            const requestMessage = group.request.data?.message || 'Unbekannte Anfrage';
-            const responseMessage = group.response.data?.response || 'Unbekannte Antwort';
-            const responsePreview = responseMessage.substring(0, 80) + (responseMessage.length > 80 ? '...' : '');
+            const responseTime = new Date(group.response.timestamp).toLocaleTimeString('de-DE', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
 
-            const speedClass = processingTime < 2000 ? 'fast' : processingTime < 5000 ? 'medium' : 'slow';
-            const debugInfo = window.location.hostname === 'localhost' ? `
-                <div style="font-size: 0.7rem; color: #666; margin-top: 4px; font-family: monospace;">
-                    Debug: Request-ID ${group.request.requestId?.substring(0, 15) || 'missing'} |
-                    Session ${group.request.sessionId?.substring(0, 8) || 'missing'}
-                </div>
-            ` : '';
+            const processingTime = group.responseTime;
+            const requestMessage = group.request.message || 'Unbekannte Frage';
+            const responseMessage = group.response.response || 'Unbekannte Antwort';
+            const responsePreview = responseMessage.length > 100 ?
+                responseMessage.substring(0, 100) + '...' : responseMessage;
+
+            let speedClass, speedIcon, speedText;
+            if (processingTime < 1500) {
+                speedClass = 'super-fast';
+                speedIcon = '⚡';
+                speedText = 'Blitzschnell!';
+            } else if (processingTime < 3000) {
+                speedClass = 'fast';
+                speedIcon = '🚀';
+                speedText = 'Schnell';
+            } else if (processingTime < 5000) {
+                speedClass = 'normal';
+                speedIcon = '🔄';
+                speedText = 'Normal';
+            } else {
+                speedClass = 'slow';
+                speedIcon = '🐌';
+                speedText = 'Langsam';
+            }
+
+            const getCharColor = (length) => {
+                if (length < 20) return '#7ee787';
+                if (length < 100) return '#58a6ff';
+                return '#f2cc60';
+            };
 
             return `
-                <div class="conversation-group">
-                    <div class="conversation-header">
-                        <div class="conversation-timing">
+                <div class="teen-conversation-card">
+                    <div class="conversation-header-teen">
+                        <div class="time-flow">
                             <span class="start-time">${requestTime}</span>
-                            <div class="processing-indicator ${speedClass}">
-                                <div class="processing-dots">
+                            <div class="processing-flow ${speedClass}">
+                                <div class="flow-dots">
                                     <span></span><span></span><span></span>
                                 </div>
-                                <span class="processing-time">${processingTime}ms</span>
+                                <span class="processing-badge">${speedIcon} ${processingTime}ms</span>
                             </div>
                             <span class="end-time">${responseTime}</span>
                         </div>
-                        ${debugInfo}
                     </div>
 
-                    <div class="conversation-flow">
-                        <div class="message-bubble user-bubble">
-                            <div class="bubble-header">
-                                <span class="bubble-icon">👤</span>
-                                <span class="bubble-label">User fragt</span>
-                                <span class="message-length">${requestMessage.length} Zeichen</span>
+                    <div class="chat-bubbles-container">
+                        <div class="message-card user-message">
+                            <div class="message-header">
+                                <span class="avatar">👤</span>
+                                <span class="sender-label">User fragt</span>
+                                <span class="char-badge" style="background: ${getCharColor(requestMessage.length)}">
+                                    ${requestMessage.length} chars
+                                </span>
                             </div>
-                            <div class="bubble-content">${requestMessage}</div>
+                            <div class="message-content">${requestMessage}</div>
                         </div>
 
-                        <div class="flow-arrow ${speedClass}">
-                            <div class="arrow-line"></div>
-                            <div class="arrow-head">▶</div>
-                            <div class="flow-timing">${processingTime}ms</div>
+                        <div class="message-flow ${speedClass}">
+                            <div class="flow-line"></div>
+                            <div class="flow-arrow">▶</div>
+                            <div class="flow-time">${processingTime}ms</div>
+                            <div class="flow-spark"></div>
                         </div>
 
-                        <div class="message-bubble alex-bubble">
-                            <div class="bubble-header">
-                                <span class="bubble-icon">🤖</span>
-                                <span class="bubble-label">ALEX antwortet</span>
-                                <span class="message-length">${responseMessage.length} Zeichen</span>
+                        <div class="message-card alex-message">
+                            <div class="message-header">
+                                <span class="avatar">🤖</span>
+                                <span class="sender-label">ALEX antwortet</span>
+                                <span class="char-badge" style="background: ${getCharColor(responseMessage.length)}">
+                                    ${responseMessage.length} chars
+                                </span>
                             </div>
-                            <div class="bubble-content">${responsePreview}</div>
+                            <div class="message-content">${responsePreview}</div>
                         </div>
                     </div>
 
-                    <div class="conversation-footer">
-                        <div class="performance-indicator">
-                            <span class="perf-label">Performance:</span>
-                            <div class="perf-bar">
-                                <div class="perf-fill ${speedClass}" style="width: ${Math.min(100, (6000 - processingTime) / 60)}%"></div>
+                    <div class="performance-footer">
+                        <div class="speed-indicator ${speedClass}">
+                            <div class="speed-bar">
+                                <div class="speed-fill" style="width: ${Math.min(100, (7000 - processingTime) / 70)}%"></div>
                             </div>
-                            <span class="perf-text ${speedClass}">
-                                ${speedClass === 'fast' ? '⚡ Blitzschnell' :
-                                  speedClass === 'medium' ? '🔄 Normal' : '🐌 Langsam'}
-                            </span>
+                            <span class="speed-label">${speedIcon} ${speedText}</span>
+                        </div>
+                        <div class="conversation-stats">
+                            <span class="stat-item">📝 ${requestMessage.length + responseMessage.length} total chars</span>
+                            <span class="stat-item">⚡ ${(responseMessage.length / (processingTime / 1000)).toFixed(0)} chars/sec</span>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        function renderSingleActivity(group) {
-            const activity = group.activity || group;
-            const time = new Date(activity.timestamp).toLocaleTimeString('de-DE');
-            let icon, label, colorClass;
-
-            switch(activity.type) {
-                case 'request_error':
-                    icon = '❌';
-                    label = 'Fehler';
-                    colorClass = 'error';
-                    break;
-                case 'token_used':
-                    icon = '🎫';
-                    label = 'Token eingelöst';
-                    colorClass = 'token';
-                    break;
-                default:
-                    icon = '📡';
-                    label = 'System-Event';
-                    colorClass = 'system';
-            }
-
-            if (group.type === 'active_request') {
-                return `
-                    <div class="active-request-indicator">
-                        <div class="thinking-animation">
-                            <div class="thinking-dots">
-                                <span></span><span></span><span></span>
-                            </div>
-                            <span class="thinking-text">🔥 ALEX denkt gerade...</span>
-                        </div>
-                        <div class="active-request-details">
-                            <span class="request-time">${time}</span>
-                            <span class="request-message">${activity.data?.message || 'Warte auf Antwort...'}</span>
-                        </div>
-                    </div>
-                `;
-            }
+        function renderActiveThinking(group) {
+            const activity = group.activity;
+            const thinkingTime = Math.round((Date.now() - new Date(activity.timestamp).getTime()) / 1000);
 
             return `
-                <div class="single-activity ${colorClass}">
-                    <div class="activity-icon">${icon}</div>
-                    <div class="activity-details">
-                        <div class="activity-header">
-                            <span class="activity-label">${label}</span>
-                            <span class="activity-time">${time}</span>
+                <div class="thinking-card-teen">
+                    <div class="thinking-header">
+                        <div class="thinking-dots-big">
+                            <span></span><span></span><span></span>
                         </div>
-                        <div class="activity-message">${activity.data?.message || activity.data?.error || 'System-Aktivität'}</div>
+                        <span class="thinking-text">🔥 ALEX denkt krass nach...</span>
+                        <span class="thinking-timer">${thinkingTime}s</span>
+                    </div>
+                    <div class="thinking-question">
+                        <span class="question-preview">"${activity.message?.substring(0, 60) || 'Unbekannte Frage'}..."</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTokenRedeemed(group) {
+            const activity = group.activity;
+            const time = new Date(activity.timestamp).toLocaleTimeString('de-DE');
+
+            return `
+                <div class="token-card-teen">
+                    <div class="token-header">
+                        <span class="token-icon">🎫✨</span>
+                        <span class="token-text">Token eingelöst!</span>
+                        <span class="token-time">${time}</span>
+                    </div>
+                    <div class="token-details">
+                        <span class="token-content">${activity.message || 'Neue ALEX-Erweiterung'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderError(group) {
+            const activity = group.activity;
+            const time = new Date(activity.timestamp).toLocaleTimeString('de-DE');
+
+            return `
+                <div class="error-card-teen">
+                    <div class="error-header">
+                        <span class="error-icon">❌</span>
+                        <span class="error-text">Oops! Fehler</span>
+                        <span class="error-time">${time}</span>
+                    </div>
+                    <div class="error-details">
+                        ${activity.data?.error || 'Unbekannter Fehler'}
                     </div>
                 </div>
             `;

@@ -40,12 +40,12 @@ PERSÖNLICHKEIT:
 
     let extensionsText = '';
     if (alexExtensions.extensions && alexExtensions.extensions.length > 0) {
-      extensionsText = 'ALEX hat zusätzliche Wissens-Erweiterungen gelernt:\n';
+      extensionsText = 'Halte dich außerdem zusätzlich an diese Anweisungen:\n';
       alexExtensions.extensions.forEach(ext => {
         extensionsText += `- ${ext.content} (von ${ext.winner})\n`;
       });
     } else {
-      extensionsText = 'Noch keine Erweiterungen von Teilnehmern.';
+      extensionsText = 'Noch keine zusätzlichen Anweisungen von Teilnehmern.';
     }
 
     const now = new Date();

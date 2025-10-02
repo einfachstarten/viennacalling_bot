@@ -62,6 +62,75 @@
             color: #8b949e;
         }
         
+        .activity-section {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #30363d;
+        }
+        
+        .thinking-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .neural-activity {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .neuron {
+            width: 12px;
+            height: 12px;
+            background: #58a6ff;
+            border-radius: 50%;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+        
+        .neuron.active {
+            opacity: 1;
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 10px #58a6ff;
+        }
+        
+        .thinking-text {
+            font-size: 1.1rem;
+            color: #58a6ff;
+            font-weight: bold;
+        }
+        
+        .thinking-text.processing {
+            color: #f85149;
+            animation: pulse 1s infinite;
+        }
+        
+        .activity-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.4rem;
+            color: #7ee787;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+        
         .brain-section {
             margin-bottom: 30px;
             background: #0d1117;
@@ -115,6 +184,55 @@
             color: #8b949e;
         }
         
+        .activity-feed {
+            background: #161b22;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .activity-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            border-left: 3px solid #30363d;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        .activity-item.request-start {
+            border-left-color: #f85149;
+            background: rgba(248, 81, 73, 0.1);
+        }
+        
+        .activity-item.request-end {
+            border-left-color: #238636;
+            background: rgba(35, 134, 54, 0.1);
+        }
+        
+        .activity-item.request-error {
+            border-left-color: #da3633;
+            background: rgba(218, 54, 51, 0.1);
+        }
+        
+        .activity-time {
+            color: #8b949e;
+            font-size: 0.75rem;
+        }
+        
+        .activity-message {
+            color: #c9d1d9;
+            margin-top: 3px;
+        }
+        
+        .response-time {
+            color: #7ee787;
+            font-size: 0.75rem;
+            float: right;
+        }
+        
         .update-info {
             text-align: center;
             margin-top: 20px;
@@ -160,18 +278,32 @@
             padding: 20px;
         }
         
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
         @keyframes pulse {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
         
         .updating {
             animation: pulse 1s infinite;
         }
-
+        
         @media (max-width: 768px) {
             .brain-status {
+                flex-direction: column;
+            }
+
+            .activity-stats {
                 flex-direction: column;
             }
 
@@ -202,8 +334,43 @@
                 </div>
             </div>
             
+            <div class="activity-section">
+                <div class="thinking-indicator" id="thinkingIndicator">
+                    <div class="neural-activity">
+                        <div class="neuron" id="neuron1"></div>
+                        <div class="neuron" id="neuron2"></div>
+                        <div class="neuron" id="neuron3"></div>
+                    </div>
+                    <div class="thinking-text" id="thinkingText">
+                        🧠 ALEX ist bereit...
+                    </div>
+                </div>
+                
+                <div class="activity-stats" id="activityStats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalRequests">0</span>
+                        <span class="stat-label">Anfragen gesamt</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="activeRequests">0</span>
+                        <span class="stat-label">Aktiv denkend</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="avgResponseTime">0ms</span>
+                        <span class="stat-label">⌀ Antwortzeit</span>
+                    </div>
+                </div>
+            </div>
+            
             <button class="refresh-btn" onclick="loadBrainState()">🔄 Aktualisieren</button>
-            <button class="refresh-btn" id="autoRefreshBtn" onclick="toggleAutoRefresh(event)">⏱️ Auto-Refresh</button>
+            <button class="refresh-btn" onclick="toggleAutoRefresh(this)">⏱️ Auto-Refresh</button>
+        </div>
+
+        <div class="brain-section">
+            <h2 class="section-title">⚡ Live Activity Feed</h2>
+            <div id="activityFeed" class="activity-feed">
+                <div class="empty-state">Warte auf Aktivität...</div>
+            </div>
         </div>
 
         <div id="loadingState" class="loading">
@@ -243,6 +410,7 @@
     <script>
         let autoRefreshInterval = null;
         let isAutoRefresh = false;
+        let eventSource = null;
 
         async function loadBrainState() {
             const loadingEl = document.getElementById('loadingState');
@@ -285,22 +453,22 @@
         function updateExtensions(extensions) {
             const container = document.getElementById('extensionsContent');
             const countEl = document.getElementById('extensionsCountText');
-            
+
             countEl.textContent = extensions.length;
 
-            if (extensions.length === 0) {
+            if (!extensions.length) {
                 container.innerHTML = '<div class="empty-state">Noch keine Erweiterungen von Teilnehmern</div>';
                 return;
             }
 
             container.innerHTML = `
                 <div class="extensions-list">
-                    ${extensions.map((ext) => `
+                    ${extensions.map(ext => `
                         <div class="extension-item">
                             <div class="extension-content">${ext.content}</div>
                             <div class="extension-meta">
-                                Von: ${ext.winner} | Token: ${ext.token} | 
-                                ${new Date(ext.timestamp).toLocaleString('de-DE')}
+                                Von: ${ext.winner} | Token: ${ext.token || '–'} |
+                                ${ext.timestamp ? new Date(ext.timestamp).toLocaleString('de-DE') : 'Zeit unbekannt'}
                             </div>
                         </div>
                     `).join('')}
@@ -308,23 +476,125 @@
             `;
         }
 
-        function toggleAutoRefresh(event) {
-            const btn = event.target;
-            
+        function toggleAutoRefresh(button) {
             if (isAutoRefresh) {
                 clearInterval(autoRefreshInterval);
                 isAutoRefresh = false;
-                btn.textContent = '⏱️ Auto-Refresh';
-                btn.style.background = '#238636';
+                button.textContent = '⏱️ Auto-Refresh';
+                button.style.background = '#238636';
             } else {
                 autoRefreshInterval = setInterval(loadBrainState, 3000);
                 isAutoRefresh = true;
-                btn.textContent = '⏹️ Stop Auto';
-                btn.style.background = '#da3633';
+                button.textContent = '⏹️ Stop Auto';
+                button.style.background = '#da3633';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadBrainState);
+        function initLiveActivity() {
+            if (typeof EventSource !== 'undefined') {
+                eventSource = new EventSource('/api/alex-activity');
+
+                eventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateActivityDisplay(data);
+                    } catch (error) {
+                        console.error('Activity parse error:', error);
+                    }
+                };
+
+                eventSource.onerror = (error) => {
+                    console.error('EventSource failed:', error);
+                    eventSource.close();
+                    eventSource = null;
+                    setTimeout(pollActivity, 3000);
+                };
+            } else {
+                setInterval(pollActivity, 3000);
+            }
+        }
+
+        async function pollActivity() {
+            try {
+                const response = await fetch('/api/alex-activity');
+                const data = await response.json();
+                updateActivityDisplay(data);
+            } catch (error) {
+                console.error('Activity polling failed:', error);
+            }
+        }
+
+        function updateActivityDisplay(data) {
+            if (!data || data.error) {
+                console.warn('No activity data available');
+                return;
+            }
+
+            const thinkingText = document.getElementById('thinkingText');
+            const neurons = document.querySelectorAll('.neuron');
+
+            if (data.isProcessing && data.activeRequests > 0) {
+                thinkingText.textContent = `🔥 ALEX denkt gerade... (${data.activeRequests} aktiv)`;
+                thinkingText.className = 'thinking-text processing';
+
+                neurons.forEach((neuron, index) => {
+                    setTimeout(() => {
+                        neuron.classList.add('active');
+                    }, index * 200);
+                });
+            } else {
+                thinkingText.textContent = '🧠 ALEX ist bereit...';
+                thinkingText.className = 'thinking-text';
+
+                neurons.forEach(neuron => {
+                    neuron.classList.remove('active');
+                });
+            }
+
+            if (data.stats) {
+                document.getElementById('totalRequests').textContent = data.stats.totalRequests || 0;
+                document.getElementById('activeRequests').textContent = data.activeRequests || 0;
+                document.getElementById('avgResponseTime').textContent = `${data.stats.avgResponseTime || 0}ms`;
+            }
+
+            updateActivityFeed(data.recentActivities || []);
+        }
+
+        function updateActivityFeed(activities) {
+            const feed = document.getElementById('activityFeed');
+
+            if (!activities.length) {
+                feed.innerHTML = '<div class="empty-state">Warte auf Aktivität...</div>';
+                return;
+            }
+
+            feed.innerHTML = activities.map(activity => {
+                const time = new Date(activity.timestamp).toLocaleTimeString();
+                const responseTimeText = activity.responseTime ? `<span class="response-time">${activity.responseTime}ms</span>` : '';
+                let icon = '🤖';
+                if (activity.type === 'request_start') icon = '📥';
+                if (activity.type === 'request_end') icon = '📤';
+                if (activity.type === 'request_error') icon = '❌';
+
+                return `
+                    <div class="activity-item ${activity.type}">
+                        <div class="activity-time">${time} ${icon} ${responseTimeText}</div>
+                        <div class="activity-message">${activity.message || 'Unbekannte Aktivität'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBrainState();
+            initLiveActivity();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ import { kv } from '@vercel/kv';
 const isRedisAvailable = () => {
   const hasUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
   const hasToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
-  return hasUrl && hasToken;
+  return Boolean(hasUrl && hasToken);
 };
 
 const loadExtensions = async () => {
@@ -15,6 +15,7 @@ const loadExtensions = async () => {
     const extensions = await kv.get('franz-extensions');
     return extensions || { extensions: [] };
   } catch (error) {
+    console.error('Failed to load extensions for brain API:', error);
     return { extensions: [] };
   }
 };
@@ -40,7 +41,7 @@ PERSÖNLICHKEIT:
     let extensionsText = '';
     if (franzExtensions.extensions && franzExtensions.extensions.length > 0) {
       extensionsText = 'VON WORKSHOP-GEWINNERN BEIGEBRACHTES WISSEN:\n';
-      franzExtensions.extensions.forEach((ext) => {
+      franzExtensions.extensions.forEach(ext => {
         extensionsText += `- ${ext.content} (von ${ext.winner})\n`;
       });
     } else {
@@ -57,12 +58,13 @@ PERSÖNLICHKEIT:
       extensionsCount: franzExtensions.extensions?.length || 0,
       extensions: franzExtensions.extensions || [],
       systemPromptLength: (basePersonality + extensionsText).length,
-      status: 'active',
+      status: 'active'
     });
   } catch (error) {
+    console.error('Brain API failed:', error);
     return res.status(500).json({
       error: error.message,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
   }
 }

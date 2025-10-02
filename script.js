@@ -1,5 +1,6 @@
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('userInput');
+const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
 // Workshop Password Management - FRONTEND ONLY
 let requiredPassword = 'frieder2025'; // Fallback, can be overridden by API
@@ -250,6 +251,7 @@ async function getOpenAIResponse(userMessage) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Session-ID': SESSION_ID
       },
       body: JSON.stringify({
         messages: conversationHistory

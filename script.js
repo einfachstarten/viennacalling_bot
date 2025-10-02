@@ -1,6 +1,7 @@
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('userInput');
 const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+const USER_COLOR = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
 
 // Workshop Password Management - FRONTEND ONLY
 let requiredPassword = 'frieder2025'; // Fallback, can be overridden by API
@@ -247,11 +248,19 @@ async function getOpenAIResponse(userMessage) {
   try {
     console.log('Sending conversation history:', conversationHistory);
 
+    // Verbesserte Session-Daten
+    const sessionData = {
+      'X-Session-ID': SESSION_ID,
+      'X-User-Color': USER_COLOR,
+      'X-Message-Length': userMessage.length.toString(),
+      'X-Conversation-Turn': conversationHistory.length.toString()
+    };
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Session-ID': SESSION_ID
+        ...sessionData
       },
       body: JSON.stringify({
         messages: conversationHistory

@@ -185,54 +185,467 @@
         }
         
         .activity-feed {
-            background: #161b22;
-            border-radius: 6px;
-            padding: 15px;
-            max-height: 300px;
+            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 500px;
             overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            border: 1px solid #30363d;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
-        
-        .activity-item {
-            padding: 8px 12px;
+
+        .activity-feed::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .activity-feed::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
             border-radius: 4px;
-            margin-bottom: 5px;
-            border-left: 3px solid #30363d;
-            animation: slideInRight 0.3s ease;
         }
-        
-        .activity-item.request-start {
-            border-left-color: #f85149;
-            background: rgba(248, 81, 73, 0.1);
+
+        .activity-feed::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #58a6ff, #1f6feb);
+            border-radius: 4px;
         }
-        
-        .activity-item.request-end {
-            border-left-color: #238636;
+
+        .empty-state {
+            text-align: center;
+            color: #8b949e;
+            font-style: italic;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #58a6ff;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* ===== CONVERSATION GROUP STYLING ===== */
+        .conversation-group {
+            background: rgba(22, 27, 34, 0.8);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #30363d;
+            position: relative;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .conversation-group:hover {
+            border-color: #58a6ff;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .conversation-header {
+            margin-bottom: 12px;
+        }
+
+        .conversation-timing {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+
+        .start-time, .end-time {
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        .processing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 16px;
+            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid #30363d;
+        }
+
+        .processing-indicator.fast {
+            border-color: #238636;
             background: rgba(35, 134, 54, 0.1);
         }
-        
-        .activity-item.request-error {
-            border-left-color: #da3633;
+
+        .processing-indicator.medium {
+            border-color: #d29922;
+            background: rgba(210, 153, 34, 0.1);
+        }
+
+        .processing-indicator.slow {
+            border-color: #da3633;
             background: rgba(218, 54, 51, 0.1);
         }
-        
+
+        .processing-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .processing-dots span {
+            width: 4px;
+            height: 4px;
+            background: #58a6ff;
+            border-radius: 50%;
+            animation: processingPulse 1.5s infinite;
+        }
+
+        .processing-dots span:nth-child(2) { animation-delay: 0.3s; }
+        .processing-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+        .processing-time {
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        /* ===== MESSAGE BUBBLES ===== */
+        .conversation-flow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .message-bubble {
+            flex: 1;
+            background: rgba(13, 17, 23, 0.6);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #30363d;
+            backdrop-filter: blur(4px);
+        }
+
+        .user-bubble {
+            border-left: 3px solid #1f6feb;
+            background: linear-gradient(135deg, rgba(31, 111, 235, 0.1), rgba(13, 17, 23, 0.6));
+        }
+
+        .alex-bubble {
+            border-left: 3px solid #238636;
+            background: linear-gradient(135deg, rgba(35, 134, 54, 0.1), rgba(13, 17, 23, 0.6));
+        }
+
+        .bubble-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+        }
+
+        .bubble-icon {
+            font-size: 1rem;
+        }
+
+        .bubble-label {
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        .message-length {
+            color: #8b949e;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .bubble-content {
+            color: #c9d1d9;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* ===== FLOW ARROW ===== */
+        .flow-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+            position: relative;
+        }
+
+        .arrow-line {
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, #30363d, #58a6ff, #30363d);
+            position: relative;
+            animation: flowPulse 2s infinite;
+        }
+
+        .flow-arrow.fast .arrow-line {
+            background: linear-gradient(90deg, #238636, #7ee787, #238636);
+            animation-duration: 1s;
+        }
+
+        .flow-arrow.slow .arrow-line {
+            background: linear-gradient(90deg, #da3633, #f85149, #da3633);
+            animation-duration: 3s;
+        }
+
+        .arrow-head {
+            color: #58a6ff;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .flow-timing {
+            font-size: 0.7rem;
+            color: #8b949e;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* ===== PERFORMANCE FOOTER ===== */
+        .conversation-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #21262d;
+        }
+
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.75rem;
+        }
+
+        .perf-label {
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .perf-bar {
+            flex: 1;
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .perf-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .perf-fill.fast {
+            background: linear-gradient(90deg, #238636, #7ee787);
+        }
+
+        .perf-fill.medium {
+            background: linear-gradient(90deg, #d29922, #f2cc60);
+        }
+
+        .perf-fill.slow {
+            background: linear-gradient(90deg, #da3633, #f85149);
+        }
+
+        .perf-text {
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        .perf-text.fast { color: #7ee787; }
+        .perf-text.medium { color: #f2cc60; }
+        .perf-text.slow { color: #f85149; }
+
+        /* ===== ACTIVE REQUEST STYLING ===== */
+        .active-request-indicator {
+            background: linear-gradient(135deg, rgba(248, 81, 73, 0.15), rgba(13, 17, 23, 0.8));
+            border: 2px solid #f85149;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            animation: activeRequestPulse 2s infinite;
+        }
+
+        .thinking-animation {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dots span {
+            width: 8px;
+            height: 8px;
+            background: #f85149;
+            border-radius: 50%;
+            animation: thinkingBounce 1.4s infinite;
+        }
+
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        .thinking-text {
+            color: #f85149;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .active-request-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .request-time {
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .request-message {
+            color: #c9d1d9;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ===== SINGLE ACTIVITY STYLING ===== */
+        .single-activity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #30363d;
+            background: rgba(22, 27, 34, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .single-activity:hover {
+            background: rgba(22, 27, 34, 0.8);
+            transform: translateX(4px);
+        }
+
+        .single-activity.error {
+            border-left-color: #da3633;
+            background: linear-gradient(135deg, rgba(218, 54, 51, 0.1), rgba(22, 27, 34, 0.4));
+        }
+
+        .single-activity.token {
+            border-left-color: #d29922;
+            background: linear-gradient(135deg, rgba(210, 153, 34, 0.1), rgba(22, 27, 34, 0.4));
+        }
+
+        .single-activity.system {
+            border-left-color: #8b949e;
+            background: linear-gradient(135deg, rgba(139, 148, 158, 0.1), rgba(22, 27, 34, 0.4));
+        }
+
+        .activity-icon {
+            font-size: 1.2rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .activity-label {
+            font-weight: 600;
+            color: #c9d1d9;
+            font-size: 0.8rem;
+        }
+
         .activity-time {
             color: #8b949e;
             font-size: 0.75rem;
         }
-        
+
         .activity-message {
-            color: #c9d1d9;
-            margin-top: 3px;
-        }
-        
-        .response-time {
-            color: #7ee787;
+            color: #8b949e;
             font-size: 0.75rem;
-            float: right;
+            line-height: 1.3;
         }
-        
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes processingPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes flowPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes activeRequestPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(248, 81, 73, 0); }
+        }
+
+        @keyframes thinkingBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .conversation-flow {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+                min-width: auto;
+                min-height: 30px;
+            }
+
+            .conversation-timing {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .performance-indicator {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .active-request-details {
+                flex-direction: column;
+                gap: 4px;
+                text-align: center;
+            }
+        }
+
         .update-info {
             text-align: center;
             margin-top: 20px;
@@ -269,29 +682,6 @@
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
-        }
-        
-        .empty-state {
-            text-align: center;
-            color: #8b949e;
-            font-style: italic;
-            padding: 20px;
-        }
-        
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
         
         .updating {
@@ -563,26 +953,198 @@
         function updateActivityFeed(activities) {
             const feed = document.getElementById('activityFeed');
 
-            if (!activities.length) {
-                feed.innerHTML = '<div class="empty-state">Warte auf Aktivität...</div>';
+            if (!activities || activities.length === 0) {
+                feed.innerHTML = `
+                    <div class="empty-state">
+                        <div class="pulse-dot"></div>
+                        <span>Warte auf ALEX Aktivität...</span>
+                    </div>
+                `;
                 return;
             }
 
-            feed.innerHTML = activities.map(activity => {
-                const time = new Date(activity.timestamp).toLocaleTimeString();
-                const responseTimeText = activity.responseTime ? `<span class="response-time">${activity.responseTime}ms</span>` : '';
-                let icon = '🤖';
-                if (activity.type === 'request_start') icon = '📥';
-                if (activity.type === 'request_end') icon = '📤';
-                if (activity.type === 'request_error') icon = '❌';
+            // Gruppiere Request/Response Paare
+            const groupedActivities = groupRequestResponse(activities);
 
+            feed.innerHTML = groupedActivities.map(group => {
+                if (group.type === 'conversation') {
+                    return renderConversation(group);
+                } else {
+                    return renderSingleActivity(group);
+                }
+            }).join('');
+        }
+
+        function groupRequestResponse(activities) {
+            const grouped = [];
+            const processed = new Set();
+
+            activities.forEach((activity, index) => {
+                if (processed.has(index)) return;
+
+                if (activity.type === 'request_start') {
+                    // Suche matching response
+                    const responseIndex = activities.findIndex((resp, respIndex) => 
+                        respIndex > index && 
+                        resp.type === 'request_end' && 
+                        resp.sessionId === activity.sessionId
+                    );
+
+                    if (responseIndex !== -1) {
+                        const response = activities[responseIndex];
+                        grouped.push({
+                            type: 'conversation',
+                            request: activity,
+                            response: response,
+                            responseTime: response.responseTime || calculateResponseTime(activity.timestamp, response.timestamp)
+                        });
+                        processed.add(index);
+                        processed.add(responseIndex);
+                    } else {
+                        // Aktive Anfrage ohne Response
+                        grouped.push({
+                            type: 'active_request',
+                            activity: activity
+                        });
+                        processed.add(index);
+                    }
+                } else if (!processed.has(index)) {
+                    // Einzelne Aktivität
+                    grouped.push({
+                        type: 'single',
+                        activity: activity
+                    });
+                    processed.add(index);
+                }
+            });
+
+            return grouped;
+        }
+
+        function renderConversation(group) {
+            const requestTime = new Date(group.request.timestamp).toLocaleTimeString('de-DE');
+            const responseTime = new Date(group.response.timestamp).toLocaleTimeString('de-DE');
+            const processingTime = group.responseTime;
+
+            const requestMessage = group.request.message || 'Unbekannte Anfrage';
+            const responsePreview = group.response.response ? 
+                group.response.response.substring(0, 80) + (group.response.response.length > 80 ? '...' : '') :
+                'Antwort verarbeitet';
+
+            const speedClass = processingTime < 2000 ? 'fast' : processingTime < 5000 ? 'medium' : 'slow';
+
+            return `
+                <div class="conversation-group">
+                    <div class="conversation-header">
+                        <div class="conversation-timing">
+                            <span class="start-time">${requestTime}</span>
+                            <div class="processing-indicator ${speedClass}">
+                                <div class="processing-dots">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <span class="processing-time">${processingTime}ms</span>
+                            </div>
+                            <span class="end-time">${responseTime}</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-flow">
+                        <div class="message-bubble user-bubble">
+                            <div class="bubble-header">
+                                <span class="bubble-icon">👤</span>
+                                <span class="bubble-label">User fragt</span>
+                                <span class="message-length">${requestMessage.length} Zeichen</span>
+                            </div>
+                            <div class="bubble-content">${requestMessage}</div>
+                        </div>
+
+                        <div class="flow-arrow ${speedClass}">
+                            <div class="arrow-line"></div>
+                            <div class="arrow-head">▶</div>
+                            <div class="flow-timing">${processingTime}ms</div>
+                        </div>
+
+                        <div class="message-bubble alex-bubble">
+                            <div class="bubble-header">
+                                <span class="bubble-icon">🧠</span>
+                                <span class="bubble-label">ALEX antwortet</span>
+                                <span class="message-length">${group.response.responseLength || 0} Zeichen</span>
+                            </div>
+                            <div class="bubble-content">${responsePreview}</div>
+                        </div>
+                    </div>
+
+                    <div class="conversation-footer">
+                        <div class="performance-indicator">
+                            <span class="perf-label">Performance:</span>
+                            <div class="perf-bar">
+                                <div class="perf-fill ${speedClass}" style="width: ${Math.min(100, (6000 - processingTime) / 60)}%"></div>
+                            </div>
+                            <span class="perf-text ${speedClass}">
+                                ${speedClass === 'fast' ? '⚡ Blitzschnell' : 
+                                  speedClass === 'medium' ? '🔄 Normal' : '🐌 Langsam'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSingleActivity(group) {
+            const activity = group.activity || group;
+            const time = new Date(activity.timestamp).toLocaleTimeString('de-DE');
+            let icon, label, colorClass;
+
+            switch(activity.type) {
+                case 'request_error':
+                    icon = '❌';
+                    label = 'Fehler';
+                    colorClass = 'error';
+                    break;
+                case 'token_used':
+                    icon = '🎫';
+                    label = 'Token eingelöst';
+                    colorClass = 'token';
+                    break;
+                default:
+                    icon = '📡';
+                    label = 'System-Event';
+                    colorClass = 'system';
+            }
+
+            if (group.type === 'active_request') {
                 return `
-                    <div class="activity-item ${activity.type}">
-                        <div class="activity-time">${time} ${icon} ${responseTimeText}</div>
-                        <div class="activity-message">${activity.message || 'Unbekannte Aktivität'}</div>
+                    <div class="active-request-indicator">
+                        <div class="thinking-animation">
+                            <div class="thinking-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="thinking-text">🔥 ALEX denkt gerade...</span>
+                        </div>
+                        <div class="active-request-details">
+                            <span class="request-time">${time}</span>
+                            <span class="request-message">${activity.message}</span>
+                        </div>
                     </div>
                 `;
-            }).join('');
+            }
+
+            return `
+                <div class="single-activity ${colorClass}">
+                    <div class="activity-icon">${icon}</div>
+                    <div class="activity-details">
+                        <div class="activity-header">
+                            <span class="activity-label">${label}</span>
+                            <span class="activity-time">${time}</span>
+                        </div>
+                        <div class="activity-message">${activity.message || 'System-Aktivität'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateResponseTime(startTime, endTime) {
+            return new Date(endTime).getTime() - new Date(startTime).getTime();
         }
 
         document.addEventListener('DOMContentLoaded', () => {

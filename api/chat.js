@@ -29,19 +29,35 @@ async function logActivity(type, data) {
 
   try {
     const activity = {
-      id: Date.now().toString(),
-      type,
+      id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5),
+      type: type,
       timestamp: new Date().toISOString(),
-      data,
-      sessionId: data.sessionId || 'anonymous'
+      sessionId: data.sessionId || 'anonymous',
+      userColor: data.userColor || '#58a6ff',
+      data: {
+        message: data.message?.substring(0, 200),
+        messageLength: data.messageLength || 0,
+        response: data.response?.substring(0, 500),
+        responseLength: data.responseLength || 0,
+        processingTime: data.processingTime || 0,
+        conversationTurn: data.conversationTurn || 0,
+        success: data.success,
+        error: data.error?.substring(0, 100)
+      }
     };
 
-    const activities = (await kv.get('alex-activities')) || { events: [] };
-    activities.events = [activity, ...(activities.events || [])].slice(0, 50);
+    const activities = await kv.get('alex-activities') || { events: [] };
+    activities.events.unshift(activity);
+    activities.events = activities.events.slice(0, 100);
 
     await kv.set('alex-activities', activities);
 
-    console.log('🧠 Activity logged:', type, data.message?.substring(0, 50));
+    console.log('🧠 Enhanced activity logged:', type, {
+      session: data.sessionId?.substring(0, 8),
+      messageLen: data.messageLength,
+      responseLen: data.responseLength,
+      time: data.processingTime
+    });
   } catch (error) {
     console.error('Activity logging failed:', error);
   }
@@ -51,27 +67,33 @@ export default async function handler(req, res) {
   console.log('=== CHAT API START ===');
   console.log('Method:', req.method);
 
-  const requestStartTime = Date.now();
-  const sessionId = req.headers['x-session-id'] || requestStartTime.toString();
-  const trackedUserMessage = req.method === 'POST'
-    ? (req.body?.messages?.[req.body.messages.length - 1]?.content || req.body?.message)
-    : undefined;
+  const startTime = Date.now();
+  const sessionId = req.headers['x-session-id'] || startTime.toString();
+  const userColor = req.headers['x-user-color'] || '#58a6ff';
+  const messageLength = parseInt(req.headers['x-message-length'], 10) || 0;
+  const conversationTurn = parseInt(req.headers['x-conversation-turn'], 10) || 0;
+  let userMessage = null;
 
   if (req.method === 'POST') {
+    userMessage = req.body?.messages?.[req.body.messages.length - 1]?.content || req.body?.message;
+
     await logActivity('request_start', {
       sessionId,
-      message: trackedUserMessage,
-      messageLength: trackedUserMessage?.length || 0
+      userColor,
+      message: userMessage,
+      messageLength,
+      conversationTurn
     });
   }
 
-  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { messages } = req.body;
   console.log('Messages received:', messages);
+
+  userMessage = userMessage || messages?.[messages.length - 1]?.content || req.body.message;
 
   const now = new Date();
   const nowVienna = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Vienna' }));
@@ -975,9 +997,9 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       'wahlen'
     ];
 
-    const userMessage = conversationMessages[conversationMessages.length - 1].content.toLowerCase();
+    const lowerUserMessage = conversationMessages[conversationMessages.length - 1].content.toLowerCase();
     const isOffTopic = offTopicKeywords.some(keyword =>
-      userMessage.includes(keyword)
+      lowerUserMessage.includes(keyword)
     );
 
     // Log Unknown/Off-Topic/Uncertain Questions
@@ -1052,12 +1074,17 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       }
     }
 
+    const processingTime = Date.now() - startTime;
+
     await logActivity('request_end', {
       sessionId,
-      message: trackedUserMessage,
+      userColor,
+      message: userMessage,
+      messageLength,
       response: aiMessage,
       responseLength: aiMessage?.length || 0,
-      processingTime: Date.now() - requestStartTime,
+      processingTime,
+      conversationTurn,
       success: true
     });
 
@@ -1067,11 +1094,16 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
   } catch (error) {
     console.error('❌ FULL ERROR:', error);
 
+    const processingTime = Date.now() - startTime;
+
     await logActivity('request_error', {
       sessionId,
-      message: trackedUserMessage,
+      userColor,
+      message: userMessage,
+      messageLength,
+      processingTime,
+      conversationTurn,
       error: error.message,
-      processingTime: Date.now() - requestStartTime,
       success: false
     });
 

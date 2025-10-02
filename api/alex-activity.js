@@ -63,7 +63,7 @@ async function getCurrentActivity() {
 
     const activeRequests = events.filter(event =>
       event.type === 'request_start' &&
-      !events.find(endEvent => endEvent.type === 'request_end' && endEvent.data.sessionId === event.data.sessionId) &&
+      !events.find(endEvent => endEvent.type === 'request_end' && endEvent.sessionId === event.sessionId) &&
       now - new Date(event.timestamp).getTime() < 30000
     );
 
@@ -75,9 +75,17 @@ async function getCurrentActivity() {
     const recentActivities = events.slice(0, 10).map(event => ({
       type: event.type,
       timestamp: event.timestamp,
-      message: event.data.message ? `${event.data.message.substring(0, 100)}${event.data.message.length > 100 ? '...' : ''}` : '',
+      sessionId: event.sessionId,
+      userColor: event.userColor,
+      message: event.data.message || '',
+      messageLength: event.data.messageLength || 0,
+      response: event.data.response || '',
+      responseLength: event.data.responseLength || 0,
+      processingTime: event.data.processingTime || null,
       responseTime: event.data.processingTime || null,
-      success: event.data.success
+      conversationTurn: event.data.conversationTurn || 0,
+      success: event.data.success,
+      error: event.data.error || null
     }));
 
     return {

@@ -1,15 +1,19 @@
-// Extension Loading Function
-const loadExtensions = async () => {
+import { kv } from '@vercel/kv';
+
+const isRedisAvailable = () => {
   const hasUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
   const hasToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
-  
-  if (!hasUrl || !hasToken) {
+  return Boolean(hasUrl && hasToken);
+};
+
+// Extension Loading Function
+const loadExtensions = async () => {
+  if (!isRedisAvailable()) {
     console.log('📦 Redis not available for chat, using empty extensions');
     return { extensions: [] };
   }
-  
+
   try {
-    const { kv } = await import('@vercel/kv');
     const extensions = await kv.get('franz-extensions');
     console.log('📦 Chat loaded extensions from Redis:', extensions);
     return extensions || { extensions: [] };
@@ -19,11 +23,49 @@ const loadExtensions = async () => {
   }
 };
 
+// Activity Logger Funktion
+async function logActivity(type, data) {
+  if (!isRedisAvailable()) return;
+
+  try {
+    const activity = {
+      id: Date.now().toString(),
+      type,
+      timestamp: new Date().toISOString(),
+      data,
+      sessionId: data.sessionId || 'anonymous'
+    };
+
+    const activities = (await kv.get('alex-activities')) || { events: [] };
+    activities.events = [activity, ...(activities.events || [])].slice(0, 50);
+
+    await kv.set('alex-activities', activities);
+
+    console.log('🧠 Activity logged:', type, data.message?.substring(0, 50));
+  } catch (error) {
+    console.error('Activity logging failed:', error);
+  }
+}
+
 export default async function handler(req, res) {
   console.log('=== CHAT API START ===');
   console.log('Method:', req.method);
 
+  const requestStartTime = Date.now();
+  const sessionId = req.headers['x-session-id'] || requestStartTime.toString();
+  const trackedUserMessage = req.method === 'POST'
+    ? (req.body?.messages?.[req.body.messages.length - 1]?.content || req.body?.message)
+    : undefined;
 
+  if (req.method === 'POST') {
+    await logActivity('request_start', {
+      sessionId,
+      message: trackedUserMessage,
+      messageLength: trackedUserMessage?.length || 0
+    });
+  }
+
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -794,7 +836,7 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       throw new Error(data.error?.message || `HTTP ${response.status}`);
     }
 
-    let aiMessage = data.choices[0].message.content;
+    let aiMessage = data.choices[0]?.message?.content || '';
     console.log('✅ AI Response:', aiMessage);
 
     // Unknown Question Detection
@@ -958,7 +1000,6 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
 
       // Save to Redis for Admin Dashboard
       try {
-        const { kv } = await import('@vercel/kv');
         const unknownQuestions = await kv.get('unknown-questions') || { questions: [] };
 
         unknownQuestions.questions.push({
@@ -1011,11 +1052,28 @@ Antwort: "Heute ist ${today}. ${workshopDay ? `Das ist unser Workshop-${workshop
       }
     }
 
+    await logActivity('request_end', {
+      sessionId,
+      message: trackedUserMessage,
+      response: aiMessage,
+      responseLength: aiMessage?.length || 0,
+      processingTime: Date.now() - requestStartTime,
+      success: true
+    });
+
     return res.status(200).json({
       message: aiMessage
     });
   } catch (error) {
     console.error('❌ FULL ERROR:', error);
+
+    await logActivity('request_error', {
+      sessionId,
+      message: trackedUserMessage,
+      error: error.message,
+      processingTime: Date.now() - requestStartTime,
+      success: false
+    });
 
     return res.status(500).json({
       error: `Na servas! Fehler: ${error.message}`

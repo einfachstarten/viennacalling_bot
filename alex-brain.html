@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALEX Brain Viewer - Live Transparenz</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .brain-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #161b22;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #30363d;
+        }
+        
+        .brain-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #21262d;
+        }
+        
+        .brain-title {
+            font-size: 2rem;
+            color: #58a6ff;
+            margin: 0;
+        }
+        
+        .brain-status {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .status-item {
+            background: #21262d;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .status-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #7ee787;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+        
+        .brain-section {
+            margin-bottom: 30px;
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #58a6ff;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #58a6ff;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-content {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            border: 1px solid #30363d;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .extensions-list {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .extension-item {
+            background: #21262d;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #7ee787;
+        }
+        
+        .extension-content {
+            font-weight: bold;
+            color: #f0f6fc;
+            margin-bottom: 5px;
+        }
+        
+        .extension-meta {
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+        
+        .update-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #1f6feb;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .refresh-btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .refresh-btn:hover {
+            background: #2ea043;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #58a6ff;
+            font-style: italic;
+        }
+        
+        .error {
+            background: #da3633;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #8b949e;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .updating {
+            animation: pulse 1s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .brain-status {
+                flex-direction: column;
+            }
+
+            .refresh-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="brain-container">
+        <div class="brain-header">
+            <h1 class="brain-title">🧠 ALEX Brain Viewer</h1>
+            <p>Live Transparenz-Dashboard - Sieh wie ALEX denkt</p>
+            
+            <div class="brain-status" id="brainStatus">
+                <div class="status-item">
+                    <span class="status-value" id="extensionsCount">0</span>
+                    <span class="status-label">Erweiterungen</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-value" id="promptLength">0</span>
+                    <span class="status-label">Prompt Zeichen</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-value" id="lastUpdate">--:--</span>
+                    <span class="status-label">Letztes Update</span>
+                </div>
+            </div>
+            
+            <button class="refresh-btn" onclick="loadBrainState()">🔄 Aktualisieren</button>
+            <button class="refresh-btn" id="autoRefreshBtn" onclick="toggleAutoRefresh(event)">⏱️ Auto-Refresh</button>
+        </div>
+
+        <div id="loadingState" class="loading">
+            Lade ALEX Gehirn-Status...
+        </div>
+
+        <div id="errorState" class="error" style="display: none;">
+            Fehler beim Laden der Brain-Daten
+        </div>
+
+        <div id="brainContent" style="display: none;">
+            <div class="brain-section">
+                <h2 class="section-title">📋 Grundpersönlichkeit</h2>
+                <div class="section-content" id="basePersonality">
+                </div>
+            </div>
+
+            <div class="brain-section">
+                <h2 class="section-title">🔧 Aktive Erweiterungen (<span id="extensionsCountText">0</span>)</h2>
+                <div id="extensionsContent">
+                </div>
+            </div>
+
+            <div class="brain-section">
+                <h2 class="section-title">👁️ Kompletter System-Prompt</h2>
+                <div class="section-content" id="fullPrompt">
+                </div>
+            </div>
+        </div>
+
+        <div class="update-info">
+            <strong>Live-Dashboard:</strong> Zeigt den aktuellen "Gedanken-Zustand" von ALEX.<br>
+            Jede Token-Einlösung ändert sofort die Instructions!
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefresh = false;
+
+        async function loadBrainState() {
+            const loadingEl = document.getElementById('loadingState');
+            const errorEl = document.getElementById('errorState');
+            const contentEl = document.getElementById('brainContent');
+
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            contentEl.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/alex-brain');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'API Error');
+                }
+
+                document.getElementById('extensionsCount').textContent = data.extensionsCount;
+                document.getElementById('promptLength').textContent = data.systemPromptLength;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+                document.getElementById('basePersonality').textContent = data.basePersonality;
+
+                updateExtensions(data.extensions);
+
+                const fullPrompt = `${data.basePersonality}\n\n${data.extensionsText}`;
+                document.getElementById('fullPrompt').textContent = fullPrompt;
+
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+            } catch (error) {
+                console.error('Brain load error:', error);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Fehler: ' + error.message;
+            }
+        }
+
+        function updateExtensions(extensions) {
+            const container = document.getElementById('extensionsContent');
+            const countEl = document.getElementById('extensionsCountText');
+            
+            countEl.textContent = extensions.length;
+
+            if (extensions.length === 0) {
+                container.innerHTML = '<div class="empty-state">Noch keine Erweiterungen von Teilnehmern</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="extensions-list">
+                    ${extensions.map((ext) => `
+                        <div class="extension-item">
+                            <div class="extension-content">${ext.content}</div>
+                            <div class="extension-meta">
+                                Von: ${ext.winner} | Token: ${ext.token} | 
+                                ${new Date(ext.timestamp).toLocaleString('de-DE')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function toggleAutoRefresh(event) {
+            const btn = event.target;
+            
+            if (isAutoRefresh) {
+                clearInterval(autoRefreshInterval);
+                isAutoRefresh = false;
+                btn.textContent = '⏱️ Auto-Refresh';
+                btn.style.background = '#238636';
+            } else {
+                autoRefreshInterval = setInterval(loadBrainState, 3000);
+                isAutoRefresh = true;
+                btn.textContent = '⏹️ Stop Auto';
+                btn.style.background = '#da3633';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBrainState);
+    </script>
+</body>
+</html>

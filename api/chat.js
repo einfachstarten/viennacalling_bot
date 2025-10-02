@@ -262,7 +262,7 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Begrüßungen un
 
   if (alexExtensions.extensions && alexExtensions.extensions.length > 0) {
     console.log('✅ Adding extensions to systemPrompt:', alexExtensions.extensions);
-    systemPrompt += `\n\nVON WORKSHOP-GEWINNERN BEIGEBRACHTES WISSEN:\n`;
+    systemPrompt += `\n\nHalte dich außerdem zusätzlich an diese Anweisungen:\n`;
     alexExtensions.extensions.forEach(ext => {
       systemPrompt += `- ${ext.content} (von ${ext.winner})\n`;
     });

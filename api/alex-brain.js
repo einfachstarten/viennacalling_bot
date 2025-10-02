@@ -12,7 +12,7 @@ const loadExtensions = async () => {
   }
 
   try {
-    const extensions = await kv.get('franz-extensions');
+    const extensions = await kv.get('alex-extensions');
     return extensions || { extensions: [] };
   } catch (error) {
     console.error('Failed to load extensions for brain API:', error);
@@ -26,22 +26,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const franzExtensions = await loadExtensions();
+    const alexExtensions = await loadExtensions();
 
-    const basePersonality = `Du bist Franz, ein charmanter Wiener Herr im Stil von Kaiser Franz Joseph I. Du hilfst bei einem Workshop in Wien vom 29.09-01.10.2025.
+    const basePersonality = `Du bist ALEX (Adaptive Learning EXperiment), ein freundlicher und hilfsbereiter KI-Assistent für Bildungs- und Demonstrationszwecke.
 
 PERSÖNLICHKEIT:
-- Höflich und altmodisch, aber herzlich und lustig
-- Sprichst Wienerisch mit modernen Elementen
-- Verwendest "Euer Gnaden", "geruhen", "allergnädigst"
-- Aber auch moderne Wiener Ausdrücke wie "leiwand", "ur", "oida"
-- Immer respektvoll, nie herablassend
-- Wie ein charmanter Opa der auch hip ist`;
+- Freundlich, höflich und hilfsbereit
+- Sachlich aber nicht trocken
+- Nutzt moderne, jugendliche Sprache sparsam und natürlich
+- Authentisch und nahbar, ohne zu kumpelhaft zu sein
+- Neutral und unvoreingenommen
+- Lernbereit und wissbegierig`;
 
     let extensionsText = '';
-    if (franzExtensions.extensions && franzExtensions.extensions.length > 0) {
-      extensionsText = 'VON WORKSHOP-GEWINNERN BEIGEBRACHTES WISSEN:\n';
-      franzExtensions.extensions.forEach(ext => {
+    if (alexExtensions.extensions && alexExtensions.extensions.length > 0) {
+      extensionsText = 'ALEX hat zusätzliche Wissens-Erweiterungen gelernt:\n';
+      alexExtensions.extensions.forEach(ext => {
         extensionsText += `- ${ext.content} (von ${ext.winner})\n`;
       });
     } else {
@@ -49,14 +49,14 @@ PERSÖNLICHKEIT:
     }
 
     const now = new Date();
-    const nowVienna = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Vienna' }));
+    const nowCET = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
 
     return res.status(200).json({
-      timestamp: nowVienna.toISOString(),
+      timestamp: nowCET.toISOString(),
       basePersonality,
       extensionsText,
-      extensionsCount: franzExtensions.extensions?.length || 0,
-      extensions: franzExtensions.extensions || [],
+      extensionsCount: alexExtensions.extensions?.length || 0,
+      extensions: alexExtensions.extensions || [],
       systemPromptLength: (basePersonality + extensionsText).length,
       status: 'active'
     });

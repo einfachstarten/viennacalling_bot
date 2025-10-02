@@ -153,7 +153,7 @@ class PWAManager {
     const message = `
       <div class="ios-install-prompt">
         <div class="ios-install-content">
-          <h3>Franz als App installieren</h3>
+          <h3>ALEX als App installieren</h3>
           <p>Tippen Sie auf <strong>Teilen</strong> <span style="font-size: 1.2em;">⬆️</span> und dann auf <strong>"Zum Home-Bildschirm"</strong></p>
           <button onclick="this.parentElement.parentElement.remove(); localStorage.setItem('ios-install-dismissed', Date.now());">Verstanden</button>
         </div>
@@ -234,27 +234,27 @@ class PWAManager {
   showOfflineNotification() {
     if ('Notification' in window && Notification.permission === 'granted') {
       const options = {
-        body: 'Franz hat neue Workshop-Infos für Sie!',
+        body: 'ALEX hat neue Updates für dich!',
         icon: '/android/android-launchericon-192-192.png',
         badge: '/android/android-launchericon-72-72.png'
       };
 
       try {
-        new Notification('Workshop Update', options);
+        new Notification('ALEX Update', options);
       } catch (error) {
         console.warn('PWA: Unable to show notification:', error);
       }
     }
 
     if (window.addMessage) {
-      addMessage('📱 Sie sind offline. Franz funktioniert trotzdem, aber neue Nachrichten können nicht gesendet werden.', true);
+      addMessage('📱 Du bist offline. ALEX funktioniert trotzdem, aber neue Nachrichten können nicht gesendet werden.', true);
     }
   }
 
   // Show welcome message for new installs
   showWelcomeMessage() {
     if (window.addMessage) {
-      addMessage('🎉 Franz wurde erfolgreich installiert! Sie können die App jetzt jederzeit von Ihrem Homescreen aus starten.', true);
+      addMessage('🎉 ALEX wurde erfolgreich installiert! Du kannst mich jetzt jederzeit von deinem Homescreen aus starten.', true);
     }
   }
 }

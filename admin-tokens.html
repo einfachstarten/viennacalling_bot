@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Admin - Workshop</title>
+    <title>Token Admin - ALEX Demo</title>
     <style>
         body {
             font-family: system-ui, sans-serif;
@@ -385,7 +385,7 @@
                 🔄 Tokens zurücksetzen
             </button>
             <button class="btn" style="background: #dc3545;" onclick="resetExtensions()">
-                🧠 Franz-Wissen löschen
+                🧠 ALEX-Wissen löschen
             </button>
             <button class="btn" style="background: #6c757d;" onclick="fullReset()">
                 💥 Komplett Reset
@@ -404,8 +404,8 @@
     </div>
 
     <div class="admin-container">
-        <h2>🧠 Franz Extensions (aktuelles Wissen)</h2>
-        <button class="btn btn-secondary" onclick="loadFranzExtensions()">Franz-Wissen laden</button>
+        <h2>🧠 ALEX Extensions (aktuelles Wissen)</h2>
+        <button class="btn btn-secondary" onclick="loadFranzExtensions()">ALEX-Wissen laden</button>
 
         <div id="franzKnowledge" class="franz-knowledge" style="display: none;">
             <div class="empty-state">Noch keine Daten geladen</div>
@@ -414,7 +414,7 @@
 
     <div class="admin-container">
         <h2>🚨 Unknown Questions Monitor</h2>
-        <p style="color: #666;">Fragen die Franz nicht beantworten konnte - für Live-Workshop-Support</p>
+        <p style="color: #666;">Fragen die ALEX nicht beantworten konnte - für Live-Demo-Support</p>
 
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
             <button class="btn btn-secondary" onclick="loadUnknownQuestions()">🔄 Aktualisieren</button>
@@ -536,7 +536,7 @@
                 return;
             }
 
-            if (!confirm('Franz-Wissen komplett löschen? Das kann nicht rückgängig gemacht werden!')) {
+            if (!confirm('ALEX-Wissen komplett löschen? Das kann nicht rückgängig gemacht werden!')) {
                 return;
             }
 
@@ -555,7 +555,7 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showSuccess(result.message);
+                    showSuccess('ALEX-Wissen wurde zurückgesetzt');
                     refreshAll();
                 } else {
                     showError(result.error);
@@ -574,7 +574,7 @@
                 return;
             }
 
-            if (!confirm('KOMPLETTER RESET: Alle Tokens UND Franz-Wissen löschen?\n\nDas ist NICHT rückgängig zu machen!')) {
+            if (!confirm('KOMPLETTER RESET: Alle Tokens UND ALEX-Wissen löschen?\n\nDas ist NICHT rückgängig zu machen!')) {
                 return;
             }
 
@@ -743,15 +743,15 @@
 
         function displayFranzKnowledge(extensions) {
             const container = document.getElementById('franzKnowledge');
-            
+
             if (!extensions || extensions.length === 0) {
-                container.innerHTML = '<div class="empty-state">Franz weiß noch nichts Neues</div>';
+                container.innerHTML = '<div class="empty-state">ALEX weiß noch nichts Neues</div>';
                 return;
             }
-            
+
             container.innerHTML = `
                 <div class="knowledge-section">
-                  <h3>🧠 Franz Wissen (${extensions.length} Einträge)</h3>
+                  <h3>🧠 ALEX Wissen (${extensions.length} Einträge)</h3>
                   <div class="extension-list">
                     ${extensions.map(ext => `
                       <div class="extension-item">
@@ -776,9 +776,9 @@
                 if (response.ok) {
                     displayFranzKnowledge(result.extensions);
                     document.getElementById('franzKnowledge').style.display = 'block';
-                    showSuccess(`Franz kennt ${result.totalExtensions} neue Dinge`);
+                    showSuccess(`ALEX kennt ${result.totalExtensions} neue Dinge`);
                 } else {
-                    showError('Fehler beim Laden von Franz-Wissen');
+                    showError('Fehler beim Laden von ALEX-Wissen');
                 }
             } catch (error) {
                 showError('Fehler beim Laden');
@@ -846,7 +846,7 @@
                                 <strong>Analyse:</strong> 
                                 Unsicherheit: ${question.analysis.uncertaintyScore || 0} | 
                                 Länge: ${question.analysis.responseLength} | 
-                                Workshop-Kontext: ${question.analysis.hasWorkshopContext ? '✅' : '❌'}
+                                Demo-Kontext: ${question.analysis.hasExpectedContext ? '✅' : '❌'}
                                 ${question.analysis.categories?.length ? ` | Kategorien: ${question.analysis.categories.join(', ')}` : ''}
                             </div>
                         ` : ''}

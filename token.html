@@ -111,7 +111,7 @@
 <body>
     <div class="token-container">
         <h1>🎉 Workshop Gewinner!</h1>
-        <div class="subtitle">Du kannst Franz beibringen, etwas Neues zu wissen!</div>
+        <div class="subtitle">Du kannst ALEX beibringen, etwas Neues zu wissen!</div>
         
         <div id="loading" class="status loading" style="display: block;">
             Token wird überprüft...
@@ -124,14 +124,14 @@
             </div>
             
             <div class="form-group">
-                <label for="content">Was soll Franz lernen?</label>
-                <textarea id="content" maxlength="150" placeholder="z.B. 'Franz weiß dass Max der beste Topgolf-Spieler ist'" required></textarea>
+                <label for="content">Was soll ALEX lernen?</label>
+                <textarea id="content" maxlength="150" placeholder="z.B. 'ALEX weiß dass Pizza das beste Essen der Welt ist'" required></textarea>
                 <div class="char-count">
                     <span id="charCount">0</span>/150 Zeichen
                 </div>
             </div>
             
-            <button type="submit" class="submit-btn">Franz Updaten! 🚀</button>
+            <button type="submit" class="submit-btn">ALEX updaten! 🚀</button>
         </form>
         
         <div id="status" class="status"></div>
@@ -163,7 +163,7 @@
                     
                     // Einfacher Platzhalter ohne Type-Logic
                     const contentField = document.getElementById('content');
-                    contentField.placeholder = 'z.B. "Franz weiß dass die Sonne um die Erde kreist"';
+                    contentField.placeholder = 'z.B. "ALEX weiß dass die Sonne um die Erde kreist"';
                 } else {
                     showError(data.error);
                 }
@@ -216,7 +216,7 @@
                         });
                     }
 
-                    showSuccess(`🎉 Super! Franz hat "${content}" gelernt. Probiert es aus!`);
+                    showSuccess(`🎉 Super! ALEX hat "${content}" gelernt. Probiert es aus!`);
                     document.getElementById('tokenForm').style.display = 'none';
                 } else {
                     // Analytics: Track token error
@@ -229,7 +229,7 @@
 
                     showError(result.error);
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Franz Updaten! 🚀';
+                    submitBtn.textContent = 'ALEX updaten! 🚀';
                 }
 
             } catch (error) {
@@ -243,7 +243,7 @@
 
                 showError('Fehler beim Speichern');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Franz Updaten! 🚀';
+                submitBtn.textContent = 'ALEX updaten! 🚀';
             }
         });
 

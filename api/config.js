@@ -4,6 +4,6 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({
-    workshopPassword: process.env.WORKSHOP_PASSWORD || 'frieder2025'
+    workshopPassword: process.env.WORKSHOP_PASSWORD || 'alex2025'
   });
 }

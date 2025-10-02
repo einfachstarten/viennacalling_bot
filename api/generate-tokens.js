@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   const tokensCode = `// Generierte Tokens - Kopiere das in /api/tokens.js in den tokenStore:
 ${JSON.stringify(tokens, null, 2)}
 
-// URLs für Workshop:
+// URLs für Demo:
 ${urls}`;
   
   return res.status(200).json({ 

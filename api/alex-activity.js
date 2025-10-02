@@ -61,32 +61,62 @@ async function getCurrentActivity() {
     const events = activities.events || [];
     const now = Date.now();
 
-    const activeRequests = events.filter(event =>
-      event.type === 'request_start' &&
-      !events.find(endEvent => endEvent.type === 'request_end' && endEvent.sessionId === event.sessionId) &&
-      now - new Date(event.timestamp).getTime() < 30000
-    );
+    const activeRequests = events.filter(event => {
+      if (event.type !== 'request_start') return false;
+
+      const eventTime = event.sortOrder || new Date(event.timestamp).getTime();
+      if (now - eventTime >= 30000) {
+        return false;
+      }
+
+      const matchingCompletion = events.find(endEvent => {
+        if (endEvent.type !== 'request_end' && endEvent.type !== 'request_error') {
+          return false;
+        }
+
+        if (event.requestId && endEvent.requestId) {
+          return endEvent.requestId === event.requestId;
+        }
+
+        return endEvent.sessionId === event.sessionId;
+      });
+
+      return !matchingCompletion;
+    });
 
     const completedRequests = events.filter(event => event.type === 'request_end');
     const avgResponseTime = completedRequests.length > 0
       ? completedRequests.reduce((sum, event) => sum + (event.data.processingTime || 0), 0) / completedRequests.length
       : 0;
 
-    const recentActivities = events.slice(0, 10).map(event => ({
-      type: event.type,
-      timestamp: event.timestamp,
-      sessionId: event.sessionId,
-      userColor: event.userColor,
-      message: event.data.message || '',
-      messageLength: event.data.messageLength || 0,
-      response: event.data.response || '',
-      responseLength: event.data.responseLength || 0,
-      processingTime: event.data.processingTime || null,
-      responseTime: event.data.processingTime || null,
-      conversationTurn: event.data.conversationTurn || 0,
-      success: event.data.success,
-      error: event.data.error || null
-    }));
+    const recentActivities = events.slice(0, 10).map(event => {
+      const normalizedMessage = event.data?.message || event.message || '';
+      const normalizedResponse = event.data?.response || event.response || '';
+      const normalizedProcessingTime = event.data?.processingTime || event.processingTime || null;
+      const normalizedMessageLength = event.data?.messageLength || event.messageLength || 0;
+      const normalizedResponseLength = event.data?.responseLength || event.responseLength || 0;
+
+      return {
+        ...event,
+        message: normalizedMessage,
+        messageLength: normalizedMessageLength,
+        response: normalizedResponse,
+        responseLength: normalizedResponseLength,
+        processingTime: normalizedProcessingTime,
+        requestId: event.requestId,
+        sortOrder: event.sortOrder || new Date(event.timestamp).getTime(),
+        data: {
+          message: normalizedMessage,
+          messageLength: normalizedMessageLength,
+          response: normalizedResponse,
+          responseLength: normalizedResponseLength,
+          processingTime: normalizedProcessingTime,
+          conversationTurn: event.data?.conversationTurn || event.conversationTurn || 0,
+          success: event.data?.success,
+          error: event.data?.error || event.error || null
+        }
+      };
+    });
 
     return {
       isProcessing: activeRequests.length > 0,

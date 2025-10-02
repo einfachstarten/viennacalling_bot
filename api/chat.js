@@ -28,16 +28,19 @@ async function logActivity(type, data) {
   if (!isRedisAvailable()) return;
 
   try {
+    const timestamp = data.timestamp || Date.now();
     const activity = {
-      id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5),
-      type: type,
+      id: `${data.requestId || timestamp}_${type}`,
+      type,
       timestamp: new Date().toISOString(),
       sessionId: data.sessionId || 'anonymous',
+      requestId: data.requestId,
       userColor: data.userColor || '#58a6ff',
+      sortOrder: timestamp,
       data: {
         message: data.message?.substring(0, 200),
         messageLength: data.messageLength || 0,
-        response: data.response?.substring(0, 500),
+        response: data.response?.substring(0, 200),
         responseLength: data.responseLength || 0,
         processingTime: data.processingTime || 0,
         conversationTurn: data.conversationTurn || 0,
@@ -46,14 +49,17 @@ async function logActivity(type, data) {
       }
     };
 
-    const activities = await kv.get('alex-activities') || { events: [] };
+    const activities = (await kv.get('alex-activities')) || { events: [] };
     activities.events.unshift(activity);
     activities.events = activities.events.slice(0, 100);
+    activities.events.sort((a, b) => (b.sortOrder || 0) - (a.sortOrder || 0));
 
     await kv.set('alex-activities', activities);
 
-    console.log('🧠 Enhanced activity logged:', type, {
-      session: data.sessionId?.substring(0, 8),
+    console.log('🧠 Enhanced activity logged:', {
+      type,
+      sessionId: data.sessionId?.substring(0, 8),
+      requestId: data.requestId?.substring(0, 15),
       messageLen: data.messageLength,
       responseLen: data.responseLength,
       time: data.processingTime
@@ -68,21 +74,35 @@ export default async function handler(req, res) {
   console.log('Method:', req.method);
 
   const startTime = Date.now();
-  const sessionId = req.headers['x-session-id'] || startTime.toString();
+  const sessionId =
+    req.headers['x-session-id'] || `fallback_${startTime}_${Math.random().toString(36).substr(2, 9)}`;
   const userColor = req.headers['x-user-color'] || '#58a6ff';
   const messageLength = parseInt(req.headers['x-message-length'], 10) || 0;
   const conversationTurn = parseInt(req.headers['x-conversation-turn'], 10) || 0;
-  let userMessage = null;
+  const messagesFromBody = Array.isArray(req.body?.messages) ? req.body.messages : [];
+  let userMessage =
+    messagesFromBody.length > 0
+      ? messagesFromBody[messagesFromBody.length - 1]?.content
+      : req.body?.message;
+
+  const requestId = `${sessionId}_${startTime}_${Math.random().toString(36).substr(2, 5)}`;
+
+  console.log('🔍 DEBUG REQUEST START:', {
+    sessionId: sessionId.substring(0, 12),
+    requestId: requestId.substring(0, 20),
+    message: userMessage?.substring(0, 50),
+    timestamp: new Date().toISOString()
+  });
 
   if (req.method === 'POST') {
-    userMessage = req.body?.messages?.[req.body.messages.length - 1]?.content || req.body?.message;
-
     await logActivity('request_start', {
       sessionId,
+      requestId,
       userColor,
       message: userMessage,
       messageLength,
-      conversationTurn
+      conversationTurn,
+      timestamp: startTime
     });
   }
 
@@ -90,10 +110,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages } = req.body;
+  const { messages } = req.body || {};
   console.log('Messages received:', messages);
 
-  userMessage = userMessage || messages?.[messages.length - 1]?.content || req.body.message;
+  userMessage = userMessage || messages?.[messages.length - 1]?.content || req.body?.message;
 
   const now = new Date();
   const nowCET = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
@@ -503,10 +523,20 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Begrüßungen un
       }
     }
 
-    const processingTime = Date.now() - startTime;
+    const endTime = Date.now();
+    const processingTime = endTime - startTime;
+
+    console.log('🔍 DEBUG REQUEST END:', {
+      sessionId: sessionId.substring(0, 12),
+      requestId: requestId.substring(0, 20),
+      response: aiMessage?.substring(0, 50),
+      processingTime,
+      timestamp: new Date().toISOString()
+    });
 
     await logActivity('request_end', {
       sessionId,
+      requestId,
       userColor,
       message: userMessage,
       messageLength,
@@ -514,7 +544,8 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Begrüßungen un
       responseLength: aiMessage?.length || 0,
       processingTime,
       conversationTurn,
-      success: true
+      success: true,
+      timestamp: endTime
     });
 
     return res.status(200).json({
@@ -523,17 +554,28 @@ WICHTIG: Jede Antwort soll anders beginnen! Sei kreativ mit den Begrüßungen un
   } catch (error) {
     console.error('❌ FULL ERROR:', error);
 
-    const processingTime = Date.now() - startTime;
+    const endTime = Date.now();
+    const processingTime = endTime - startTime;
+
+    console.log('🔍 DEBUG REQUEST ERROR:', {
+      sessionId: sessionId.substring(0, 12),
+      requestId: requestId.substring(0, 20),
+      error: error.message,
+      processingTime,
+      timestamp: new Date().toISOString()
+    });
 
     await logActivity('request_error', {
       sessionId,
+      requestId,
       userColor,
       message: userMessage,
       messageLength,
       processingTime,
       conversationTurn,
       error: error.message,
-      success: false
+      success: false,
+      timestamp: endTime
     });
 
     return res.status(500).json({

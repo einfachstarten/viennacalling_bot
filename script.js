@@ -1,7 +1,12 @@
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('userInput');
-const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+const SESSION_ID = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 const USER_COLOR = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+
+console.log('🔍 Frontend Session initialized:', {
+  sessionId: SESSION_ID.substring(0, 20),
+  userColor: USER_COLOR
+});
 
 // Demo Password Management - FRONTEND ONLY
 let requiredPassword = 'alex2025'; // Fallback, can be overridden by API
@@ -252,14 +257,21 @@ function formatBotMessage(message) {
 
 async function getOpenAIResponse(userMessage) {
   try {
-    console.log('Sending conversation history:', conversationHistory);
+    const messageLength = userMessage.length;
+    const conversationTurn = conversationHistory.length;
 
-    // Verbesserte Session-Daten
+    console.log('🔍 Sending request:', {
+      sessionId: SESSION_ID.substring(0, 20),
+      messageLength,
+      conversationTurn,
+      message: userMessage.substring(0, 50)
+    });
+
     const sessionData = {
       'X-Session-ID': SESSION_ID,
       'X-User-Color': USER_COLOR,
-      'X-Message-Length': userMessage.length.toString(),
-      'X-Conversation-Turn': conversationHistory.length.toString()
+      'X-Message-Length': messageLength.toString(),
+      'X-Conversation-Turn': conversationTurn.toString()
     };
 
     const response = await fetch('/api/chat', {
@@ -279,9 +291,18 @@ async function getOpenAIResponse(userMessage) {
       throw new Error(data.error || 'Server error');
     }
 
+    console.log('🔍 Received response:', {
+      sessionId: SESSION_ID.substring(0, 20),
+      responseLength: data.message?.length || 0,
+      response: data.message?.substring(0, 50)
+    });
+
     return data.message;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('🔍 Request failed:', {
+      sessionId: SESSION_ID.substring(0, 20),
+      error: error.message
+    });
     throw error;
   }
 }

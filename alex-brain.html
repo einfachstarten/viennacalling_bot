@@ -979,43 +979,81 @@
             const grouped = [];
             const processed = new Set();
 
-            activities.forEach((activity, index) => {
-                if (processed.has(index)) return;
+            console.log('🔍 DEBUG: Grouping activities:', activities.length);
+
+            const sortedActivities = activities
+                .slice()
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+            sortedActivities.forEach(activity => {
+                if (processed.has(activity.id)) return;
+
+                console.log('🔍 Processing activity:', {
+                    type: activity.type,
+                    requestId: activity.requestId?.substring(0, 15),
+                    message: activity.data?.message?.substring(0, 30)
+                });
 
                 if (activity.type === 'request_start') {
-                    // Suche matching response
-                    const responseIndex = activities.findIndex((resp, respIndex) => 
-                        respIndex > index && 
-                        resp.type === 'request_end' && 
-                        resp.sessionId === activity.sessionId
+                    const matchingResponse = sortedActivities.find(resp =>
+                        resp.type === 'request_end' &&
+                        !processed.has(resp.id) &&
+                        (
+                            (activity.requestId && resp.requestId && resp.requestId === activity.requestId) ||
+                            (!activity.requestId && !resp.requestId && resp.sessionId === activity.sessionId)
+                        )
                     );
 
-                    if (responseIndex !== -1) {
-                        const response = activities[responseIndex];
+                    if (matchingResponse) {
+                        console.log('✅ Found matching pair:', {
+                            requestId: activity.requestId?.substring(0, 15),
+                            request: activity.data?.message?.substring(0, 30),
+                            response: matchingResponse.data?.response?.substring(0, 30)
+                        });
+
                         grouped.push({
                             type: 'conversation',
                             request: activity,
-                            response: response,
-                            responseTime: response.responseTime || calculateResponseTime(activity.timestamp, response.timestamp)
+                            response: matchingResponse,
+                            responseTime:
+                                matchingResponse.data?.processingTime ||
+                                calculateResponseTime(activity.timestamp, matchingResponse.timestamp)
                         });
-                        processed.add(index);
-                        processed.add(responseIndex);
+
+                        processed.add(activity.id);
+                        processed.add(matchingResponse.id);
                     } else {
-                        // Aktive Anfrage ohne Response
+                        console.log('⏳ Active request (no response yet):', {
+                            requestId: activity.requestId?.substring(0, 15),
+                            message: activity.data?.message?.substring(0, 30)
+                        });
+
                         grouped.push({
                             type: 'active_request',
                             activity: activity
                         });
-                        processed.add(index);
+                        processed.add(activity.id);
                     }
-                } else if (!processed.has(index)) {
-                    // Einzelne Aktivität
+                } else if (activity.type === 'request_error') {
                     grouped.push({
                         type: 'single',
                         activity: activity
                     });
-                    processed.add(index);
+                    processed.add(activity.id);
+                } else if (!processed.has(activity.id)) {
+                    grouped.push({
+                        type: 'single',
+                        activity: activity
+                    });
+                    processed.add(activity.id);
                 }
+            });
+
+            console.log('🔍 Grouping result:', {
+                totalActivities: activities.length,
+                groupedItems: grouped.length,
+                conversations: grouped.filter(g => g.type === 'conversation').length,
+                activeRequests: grouped.filter(g => g.type === 'active_request').length
             });
 
             return grouped;
@@ -1024,14 +1062,19 @@
         function renderConversation(group) {
             const requestTime = new Date(group.request.timestamp).toLocaleTimeString('de-DE');
             const responseTime = new Date(group.response.timestamp).toLocaleTimeString('de-DE');
-            const processingTime = group.responseTime;
+            const processingTime = Number.isFinite(group.responseTime) ? group.responseTime : 0;
 
-            const requestMessage = group.request.message || 'Unbekannte Anfrage';
-            const responsePreview = group.response.response ? 
-                group.response.response.substring(0, 80) + (group.response.response.length > 80 ? '...' : '') :
-                'Antwort verarbeitet';
+            const requestMessage = group.request.data?.message || 'Unbekannte Anfrage';
+            const responseMessage = group.response.data?.response || 'Unbekannte Antwort';
+            const responsePreview = responseMessage.substring(0, 80) + (responseMessage.length > 80 ? '...' : '');
 
             const speedClass = processingTime < 2000 ? 'fast' : processingTime < 5000 ? 'medium' : 'slow';
+            const debugInfo = window.location.hostname === 'localhost' ? `
+                <div style="font-size: 0.7rem; color: #666; margin-top: 4px; font-family: monospace;">
+                    Debug: Request-ID ${group.request.requestId?.substring(0, 15) || 'missing'} |
+                    Session ${group.request.sessionId?.substring(0, 8) || 'missing'}
+                </div>
+            ` : '';
 
             return `
                 <div class="conversation-group">
@@ -1046,6 +1089,7 @@
                             </div>
                             <span class="end-time">${responseTime}</span>
                         </div>
+                        ${debugInfo}
                     </div>
 
                     <div class="conversation-flow">
@@ -1066,9 +1110,9 @@
 
                         <div class="message-bubble alex-bubble">
                             <div class="bubble-header">
-                                <span class="bubble-icon">🧠</span>
+                                <span class="bubble-icon">🤖</span>
                                 <span class="bubble-label">ALEX antwortet</span>
-                                <span class="message-length">${group.response.responseLength || 0} Zeichen</span>
+                                <span class="message-length">${responseMessage.length} Zeichen</span>
                             </div>
                             <div class="bubble-content">${responsePreview}</div>
                         </div>
@@ -1081,7 +1125,7 @@
                                 <div class="perf-fill ${speedClass}" style="width: ${Math.min(100, (6000 - processingTime) / 60)}%"></div>
                             </div>
                             <span class="perf-text ${speedClass}">
-                                ${speedClass === 'fast' ? '⚡ Blitzschnell' : 
+                                ${speedClass === 'fast' ? '⚡ Blitzschnell' :
                                   speedClass === 'medium' ? '🔄 Normal' : '🐌 Langsam'}
                             </span>
                         </div>
@@ -1123,7 +1167,7 @@
                         </div>
                         <div class="active-request-details">
                             <span class="request-time">${time}</span>
-                            <span class="request-message">${activity.message}</span>
+                            <span class="request-message">${activity.data?.message || 'Warte auf Antwort...'}</span>
                         </div>
                     </div>
                 `;
@@ -1137,7 +1181,7 @@
                             <span class="activity-label">${label}</span>
                             <span class="activity-time">${time}</span>
                         </div>
-                        <div class="activity-message">${activity.message || 'System-Aktivität'}</div>
+                        <div class="activity-message">${activity.data?.message || activity.data?.error || 'System-Aktivität'}</div>
                     </div>
                 </div>
             `;

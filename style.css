@@ -352,6 +352,28 @@ body {
   width: 100%;
 }
 
+.continue-btn {
+  background: transparent;
+  color: var(--white);
+  border: 2px solid var(--white);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: absolute;
+  left: 20px;
+}
+
+.continue-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.continue-btn:active {
+  transform: scale(0.95);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
